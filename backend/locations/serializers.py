@@ -18,7 +18,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     accessibility_features = AccessibilityFeatureSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'description', 'address', 'latitude', 'longitude', 'accessibility_features', 'reviews']
+        fields = '__all__'
+
+    def get_image_url(self, obj):
+        if obj.image_url:
+            url = obj.image_url.url
+            if not url.startswith('http'):
+                return "https://res.cloudinary.com/dh6sayhat/" + url
+            return url
+        return None

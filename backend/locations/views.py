@@ -1,11 +1,16 @@
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .models import Location, AccessibilityFeature, Review
 from .serializers import LocationSerializer, AccessibilityFeatureSerializer, ReviewSerializer
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsAuthenticatedOrReadOnly()]
 
 class AccessibilityFeatureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AccessibilityFeature.objects.all()

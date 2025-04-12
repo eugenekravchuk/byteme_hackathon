@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 class AccessibilityFeature(models.Model):
     name = models.CharField(max_length=100)  # e.g., "Ramp", "Subtitles", "Braille signs"
@@ -15,6 +16,7 @@ class Location(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     accessibility_features = models.ManyToManyField(AccessibilityFeature, related_name="locations")
+    image_url = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return self.name
