@@ -103,12 +103,11 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-CORS_ORIGIN_ALLOW_ALL = True 
+CORS_ORIGIN_ALLOW_ALL = True
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-import dj_database_url
-import os
+
 
 DATABASES = {
     'default': dj_database_url.config(
