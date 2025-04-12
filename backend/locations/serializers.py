@@ -4,24 +4,24 @@ from .models import Location, AccessibilityFeature, Review, Category, Accessibil
 class AccessibilityFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessibilityFeature
-        fields = ['id', 'name']
+        fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name']
+        fields = '__all__'
 
 class AccessibilityLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessibilityLevel
-        fields = ['id', 'name']
+        fields = '__all__'
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Review
-        fields = ['id', 'user', 'rating', 'comment', 'created_at']
+        fields = '__all__'
 
 
 class LocationSerializer(serializers.ModelSerializer):

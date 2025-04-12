@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
 from cloudinary.models import CloudinaryField
-from curses.ascii import ACK
-from posix import access
 
 class AccessibilityFeature(models.Model):
     name = models.CharField(max_length=100)  # e.g., "Ramp", "Subtitles", "Braille signs"
@@ -60,16 +58,14 @@ class Location(models.Model):
             return 'limited_accessibility'
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         accessibility_level = self.calculate_accessibility_level()
         level, created = AccessibilityLevel.objects.get_or_create(name=accessibility_level)
-        self.accessibility_levels.clear()
-        self.accessibility_levels.add(level)
-        super().save(*args, **kwargs)
-
+        self.accessibility_levels.set([level])
 
 class Review(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rating = models.IntegerField()  # 1 to 5
+    rating = models.IntegerField()
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
