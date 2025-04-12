@@ -39,7 +39,7 @@ const MyReviews = () => {
           className={`h-4 w-4 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
         />
       ))}
-      <span className="ml-1 text-sm">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-sm">{Number(rating).toFixed(1)}</span>
     </div>
   );
 

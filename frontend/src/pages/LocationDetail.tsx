@@ -36,7 +36,10 @@ const LocationDetail = () => {
     if (id) {
       fetchLocationById(id)
         .then((loc) => {
-          setLocation(loc);
+          setLocation({
+            ...loc,
+            reviews: Array.isArray(loc.reviews) ? loc.reviews : [],
+          });
           setSelectedLocation(loc);
         })
         .catch((err) => {
@@ -76,7 +79,7 @@ const LocationDetail = () => {
           className={`h-5 w-5 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
         />
       ))}
-      <span className="ml-2 text-lg font-medium">{rating.toFixed(1)}</span>
+      <span className="ml-2 text-lg font-medium">{Number(rating).toFixed(1)}</span>
     </div>
   );
 
@@ -119,16 +122,16 @@ const LocationDetail = () => {
                     <p className="text-muted-foreground mb-2">{level?.description}</p>
                     <h4 className="font-medium mt-4 mb-2">Accessibility Features</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {location.accessibilityFeatures.map((featureId: string) => {
-                        const feature = accessibilityFeatures.find((f) => f.id === featureId);
-                        if (!feature) return null;
-                        return (
-                          <div key={featureId} className="flex items-center">
-                            <Check className="h-4 w-4 mr-2 text-accessible2" />
-                            <span>{feature.name}</span>
-                          </div>
-                        );
-                      })}
+                    {Array.isArray(location.accessibilityFeatures) && location.accessibilityFeatures.map((featureId: string) => {
+                      const feature = accessibilityFeatures.find((f) => f.id === featureId);
+                      if (!feature) return null;
+                      return (
+                        <div key={featureId} className="flex items-center">
+                          <Check className="h-4 w-4 mr-2 text-accessible2" />
+                          <span>{feature.name}</span>
+                        </div>
+                      );
+                    })}
                     </div>
                   </div>
                 </div>
@@ -161,12 +164,7 @@ const LocationDetail = () => {
               </CardHeader>
               <Separator />
               <CardContent className="pt-6">
-                {location.reviews.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No reviews yet.</p>
-                    <p>Be the first to share your experience!</p>
-                  </div>
-                ) : (
+                {Array.isArray(location.reviews) && location.reviews.length > 0 ? (
                   <div className="space-y-4">
                     {location.reviews.map((review: any) => (
                       <div key={review.id} className="bg-gray-50 rounded-lg p-4">
@@ -189,6 +187,11 @@ const LocationDetail = () => {
                         </p>
                       </div>
                     ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No reviews yet.</p>
+                    <p>Be the first to share your experience!</p>
                   </div>
                 )}
               </CardContent>

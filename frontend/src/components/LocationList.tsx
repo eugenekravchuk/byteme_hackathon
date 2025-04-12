@@ -65,7 +65,7 @@ const LocationList = () => {
           className={`h-3 w-3 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
         />
       ))}
-      <span className="ml-1 text-xs">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-xs">{}</span>
     </div>
   );
 

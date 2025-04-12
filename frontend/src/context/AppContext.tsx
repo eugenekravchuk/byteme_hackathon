@@ -100,7 +100,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return {
           ...location,
           reviews: updatedReviews,
-          rating: parseFloat(totalRating.toFixed(1)),
+          rating: parseFloat(total),
         };
       }
       return location;

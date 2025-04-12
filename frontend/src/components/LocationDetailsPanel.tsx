@@ -117,7 +117,7 @@ const LocationDetailsPanel: React.FC = () => {
             }`}
           />
         ))}
-        <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
+        <span className="ml-1 text-sm font-medium">{Number(rating).toFixed(1)}</span>
       </div>
     );
   };
