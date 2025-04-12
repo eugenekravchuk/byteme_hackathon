@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name']
-        
+
 class AccessibilityLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessibilityLevel
@@ -32,4 +32,4 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'description', 'address', 'latitude', 'longitude', 'accessibility_features', 'reviews', 'categories', 'accessibility_levels']
+        fields = ['id', 'name', 'description', 'address', 'latitude', 'longitude', 'accessibility_features', 'reviews', 'categories', 'accessibility_levels', 'rating']
