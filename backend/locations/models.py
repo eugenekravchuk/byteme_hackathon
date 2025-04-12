@@ -3,13 +3,13 @@ from django.conf import settings
 from cloudinary.models import CloudinaryField
 
 class AccessibilityFeature(models.Model):
-    name = models.CharField(max_length=100)  # e.g., "Ramp", "Subtitles", "Braille signs"
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)  # e.g., "Restaurant", "Cafe", etc.
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
