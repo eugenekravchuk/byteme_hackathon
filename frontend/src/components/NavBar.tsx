@@ -73,7 +73,7 @@ const NavBar = () => {
                       )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 z-[9999]">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
