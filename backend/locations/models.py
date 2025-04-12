@@ -1,16 +1,15 @@
 from django.db import models
 from django.conf import settings
-from curses.ascii import ACK
-from posix import access
+from cloudinary.models import CloudinaryField
 
 class AccessibilityFeature(models.Model):
-    name = models.CharField(max_length=100)  # e.g., "Ramp", "Subtitles", "Braille signs"
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)  # e.g., "Restaurant", "Cafe", etc.
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -37,10 +36,11 @@ class Location(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     accessibility_features = models.ManyToManyField(AccessibilityFeature, related_name="locations")
+    image_url = CloudinaryField('image', blank=True, null=True)
     categories = models.ManyToManyField(Category, related_name="locations")
     accessibility_levels = models.ManyToManyField(AccessibilityLevel, related_name="locations") 
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0)
-    
+
     def __str__(self):
         return self.name
 
@@ -58,16 +58,14 @@ class Location(models.Model):
             return 'limited_accessibility'
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         accessibility_level = self.calculate_accessibility_level()
         level, created = AccessibilityLevel.objects.get_or_create(name=accessibility_level)
-        self.accessibility_levels.clear()
-        self.accessibility_levels.add(level)
-        super().save(*args, **kwargs)
-
+        self.accessibility_levels.set([level])
 
 class Review(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rating = models.IntegerField()  # 1 to 5
+    rating = models.IntegerField()
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

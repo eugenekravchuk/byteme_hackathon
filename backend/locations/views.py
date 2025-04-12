@@ -1,7 +1,7 @@
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .models import Location, AccessibilityFeature, Review, Category, AccessibilityLevel
 from .serializers import LocationSerializer, AccessibilityFeatureSerializer, ReviewSerializer, CategorySerializer, AccessibilityLevelSerializer
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
