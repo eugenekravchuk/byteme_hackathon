@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
-
+import os
 load_dotenv()  # only needed for local .env support
 
 # Base directory
@@ -123,12 +123,11 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-CORS_ORIGIN_ALLOW_ALL = True 
+CORS_ORIGIN_ALLOW_ALL = True
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-import dj_database_url
-import os
+
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -137,6 +136,3 @@ DATABASES = {
 }
 
 # ALLOWED_HOSTS = ['your-django-backend.onrender.com']
-
-
-
