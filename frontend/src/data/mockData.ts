@@ -226,5 +226,5 @@ export const currentUser: User = {
   id: "1",
   name: "Alex Smith",
   email: "alex@example.com",
-  isSpecialAccess: true
+  isSpecialAccess: false
 };
