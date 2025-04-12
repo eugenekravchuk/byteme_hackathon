@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -9,35 +8,31 @@ import { Separator } from '@/components/ui/separator';
 import { Star, MapPin, ArrowLeft, MessageSquare, Pencil, Accessibility, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AppProvider } from '../context/AppContext';
+import { fetchLocationById } from '../lib/api';
 
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { 
-    locations, 
-    accessibilityFeatures, 
-    accessibilityLevels,
-    user,
-    setSelectedLocation
-  } = useApp();
-  
+  const { accessibilityFeatures, accessibilityLevels, user, setSelectedLocation } = useApp();
+
   const [location, setLocation] = useState<any>(null);
-  
+
   useEffect(() => {
     if (id) {
-      const foundLocation = locations.find(loc => loc.id === id);
-      if (foundLocation) {
-        setLocation(foundLocation);
-        // Also set as selected location for the side panel integration
-        setSelectedLocation(foundLocation);
-      }
+      fetchLocationById(id)
+        .then((loc) => {
+          setLocation(loc);
+          setSelectedLocation(loc);
+        })
+        .catch((err) => {
+          console.error('Failed to load location:', err);
+        });
     }
-    
-    // Cleanup function
+
     return () => {
       setSelectedLocation(null);
     };
-  }, [id, locations, setSelectedLocation]);
-  
+  }, [id, setSelectedLocation]);
+
   if (!location) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -53,28 +48,24 @@ const LocationDetail = () => {
       </div>
     );
   }
-  
+
   const getAccessibilityLevel = () => {
     return accessibilityLevels.find(level => level.id === location.accessibilityLevel);
   };
-  
+
   const level = getAccessibilityLevel();
-  
-  const renderStarRating = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-5 w-5 ${
-              star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-            }`}
-          />
-        ))}
-        <span className="ml-2 text-lg font-medium">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
+
+  const renderStarRating = (rating: number) => (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-5 w-5 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+        />
+      ))}
+      <span className="ml-2 text-lg font-medium">{rating.toFixed(1)}</span>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -86,9 +77,8 @@ const LocationDetail = () => {
             Back to Map
           </Link>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Left column - Main info */}
           <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader>
@@ -100,15 +90,10 @@ const LocationDetail = () => {
                       {location.address}
                     </CardDescription>
                   </div>
-                  
-                  <Badge 
-                    className="text-white"
-                    style={{ backgroundColor: level?.color }}
-                  >
+                  <Badge className="text-white" style={{ backgroundColor: level?.color }}>
                     {level?.name}
                   </Badge>
                 </div>
-                
                 <div className="mt-4">{renderStarRating(location.rating)}</div>
               </CardHeader>
               <Separator />
@@ -116,19 +101,18 @@ const LocationDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium mb-2">Description</h3>
-                    <p>{location.description || "No description available."}</p>
+                    <p>{location.description || 'No description available.'}</p>
                   </div>
-                  
                   <div>
                     <h3 className="text-lg font-medium mb-2">Accessibility Information</h3>
                     <p className="text-muted-foreground mb-2">{level?.description}</p>
-                    
+
                     <h4 className="font-medium mt-4 mb-2">Accessibility Features</h4>
                     <div className="grid grid-cols-2 gap-2">
                       {location.accessibilityFeatures.map((featureId: string) => {
                         const feature = accessibilityFeatures.find((f) => f.id === featureId);
                         if (!feature) return null;
-                        
+
                         return (
                           <div key={featureId} className="flex items-center">
                             <Check className="h-4 w-4 mr-2 text-accessible2" />
@@ -148,7 +132,7 @@ const LocationDetail = () => {
               </CardFooter>
             </Card>
           </div>
-          
+
           {/* Right column - Reviews */}
           <div>
             <Card>
