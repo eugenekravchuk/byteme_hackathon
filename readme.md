@@ -2,7 +2,7 @@
 
 **Access Compass** is a full-stack web application that helps users discover accessible locations in the city. Whether you're looking for parks, cafes, theaters, or historical sites, Access Compass makes it easy to find inclusive places based on detailed accessibility features and user reviews.
 
-![screenshot](https://res.cloudinary.com/dh6sayhat/image/upload/v1744562101/usyqy454bfhyx7jxdrpz.jpg)
+🌐 **Live site**: [accessibility-compass.netlify.app](https://accessibility-compass.netlify.app)
 
 ---
 
