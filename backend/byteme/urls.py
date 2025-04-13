@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from locations import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +34,6 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     path('api/', include('locations.urls')),
+    path('api/locations/<int:location_id>/add-feature/<int:feature_id>/', views.add_feature_to_location),
+    path('api/locations/<int:location_id>/remove-feature/<int:feature_id>/', views.remove_feature_from_location),
 ]

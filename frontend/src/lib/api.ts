@@ -95,20 +95,18 @@ export const addFeatureToLocation = async (
   token: string
 ) => {
   const response = await fetch(
-    `https://access-compass-django.onrender.com/api/locations/${locationId}/add_feature/`,
+    `${BASE_URL}/locations/${locationId}/add-feature/${featureId}/`,
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ feature_id: featureId }),
     }
   );
   if (!response.ok) {
     throw new Error("Failed to add feature");
   }
-  return await response.json();
 };
 
 export const removeFeatureFromLocation = async (
@@ -117,18 +115,15 @@ export const removeFeatureFromLocation = async (
   token: string
 ) => {
   const response = await fetch(
-    `https://access-compass-django.onrender.com/api/locations/${locationId}/remove_feature/`,
+    `${BASE_URL}/locations/${locationId}/remove-feature/${featureId}/`,
     {
-      method: "POST",
+      method: "DELETE",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ feature_id: featureId }),
     }
   );
   if (!response.ok) {
     throw new Error("Failed to remove feature");
   }
-  return await response.json();
 };

@@ -9,4 +9,7 @@ router.register('categories', CategoryViewSet)
 router.register('accessibility_levels', AccessibilityLevelViewSet)
 router.register('propositions', PropositionViewSet)
 
+
+
+
 urlpatterns = router.urls
