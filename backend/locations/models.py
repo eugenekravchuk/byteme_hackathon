@@ -69,3 +69,12 @@ class Review(models.Model):
     rating = models.IntegerField()
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Proposition(models.Model):
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='propositions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Proposition by {self.user} on {self.location}"

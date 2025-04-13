@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Location, AccessibilityFeature, Review, Category, AccessibilityLevel
+from .models import Location, AccessibilityFeature, Review, Category, AccessibilityLevel, Proposition
 
 class AccessibilityFeatureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,6 +23,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+class PropositionSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Proposition
+        fields = ['id', 'user', 'text', 'created_at']
 
 class LocationSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
@@ -30,6 +36,8 @@ class LocationSerializer(serializers.ModelSerializer):
     accessibility_features = AccessibilityFeatureSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     image_url = serializers.SerializerMethodField()
+    propositions = PropositionSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = Location
