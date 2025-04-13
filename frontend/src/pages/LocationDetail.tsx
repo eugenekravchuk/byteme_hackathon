@@ -347,11 +347,11 @@ const LocationDetail = () => {
                                 localStorage.getItem("access_token")!;
                               await addFeatureToLocation(
                                 location.id,
-                                +featureId,
+                                featureId,
                                 token
                               );
                               const newFeature = accessibilityFeatures.find(
-                                (f) => f.id === +featureId
+                                (f) => f.id === featureId
                               );
                               if (newFeature) {
                                 setLocation({
@@ -362,7 +362,7 @@ const LocationDetail = () => {
                                   ],
                                 });
                               }
-                              toast({ title: "Feature added" });
+                              window.location.reload();
                             } catch (err) {
                               toast({ title: "Failed to add feature" });
                             }

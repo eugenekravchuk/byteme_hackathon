@@ -95,7 +95,7 @@ export const addFeatureToLocation = async (
   token: string
 ) => {
   const response = await fetch(
-    `/api/locations/${locationId}/add-feature/${featureId}/`,
+    `${BASE_URL}/locations/${locationId}/add-feature/${featureId}/`,
     {
       method: "POST",
       headers: {
@@ -115,7 +115,7 @@ export const removeFeatureFromLocation = async (
   token: string
 ) => {
   const response = await fetch(
-    `/api/locations/${locationId}/remove-feature/${featureId}/`,
+    `${BASE_URL}/locations/${locationId}/remove-feature/${featureId}/`,
     {
       method: "DELETE",
       headers: {
