@@ -16,14 +16,14 @@ class Category(models.Model):
 
 
 class AccessibilityLevel(models.Model):
-    LEVEL_CHOICES = [
-        ('fully_accessible', 'Fully Accessible'),
-        ('mostly_accessible', 'Mostly Accessible'),
-        ('partially_accessible', 'Partially Accessible'),
-        ('limited_accessibility', 'Limited Accessibility'),
-    ]
+    # LEVEL_CHOICES = [
+    #     ('fully_accessible', 'Fully Accessible'),
+    #     ('mostly_accessible', 'Mostly Accessible'),
+    #     ('partially_accessible', 'Partially Accessible'),
+    #     ('limited_accessibility', 'Limited Accessibility'),
+    # ]
     
-    name = models.CharField(max_length=50, choices=LEVEL_CHOICES)
+    name = models.CharField(max_length=50)
     color = models.CharField(max_length=7, default='#FFFFFF')
 
     def __str__(self):

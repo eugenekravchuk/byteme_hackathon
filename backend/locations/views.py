@@ -36,7 +36,6 @@ class AccessibilityLevelViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AccessibilityLevel.objects.all()
     serializer_class = AccessibilityLevelSerializer
 
-
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
