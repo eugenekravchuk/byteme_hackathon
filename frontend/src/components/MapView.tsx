@@ -136,6 +136,7 @@ const MapView = () => {
 
     const newRouteControls = filteredLocations.map((location) => {
       const routeControl = L.Routing.control({
+
         waypoints: [
           L.latLng(userLocation.lat, userLocation.lng),
 

@@ -21,7 +21,14 @@ class AccessibilityLevel(models.Model):
 
     def __str__(self):
         return self.name
-        
+       
+ACCESSIBILITY_LEVEL_COLORS = {
+    'fully_accessible': '#00FF00',  # Green
+    'mostly_accessible': '#0000FF',  # Blue
+    'partially_accessible': '#FFA500',  # Orange
+    'limited_accessibility': '#FF0000',  # Red
+}
+ 
 class Location(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -52,8 +59,15 @@ class Location(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        accessibility_level = self.calculate_accessibility_level()
-        level, created = AccessibilityLevel.objects.get_or_create(name=accessibility_level)
+        accessibility_level_name = self.calculate_accessibility_level()
+        color = ACCESSIBILITY_LEVEL_COLORS.get(accessibility_level_name, '#FFFFFF')  # Default to white
+        level, created = AccessibilityLevel.objects.get_or_create(
+            name=accessibility_level_name,
+            defaults={'color': color}
+        )
+        if not created and level.color != color:
+            level.color = color
+            level.save()
         self.accessibility_levels.set([level])
 
 class Review(models.Model):
