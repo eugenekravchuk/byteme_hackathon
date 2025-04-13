@@ -3,11 +3,6 @@ import axios from "axios";
 // const API_URL = "https://access-compass-django.onrender.com/api";
 const API_URL = "https://access-compass-django.onrender.com/api";
 
-function getCookie(name: string): string | undefined {
-  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  return match?.[2];
-}
-
 export const login = async (username: string, password: string) => {
   const response = await axios.post(`${API_URL}/token/`, {
     username,
