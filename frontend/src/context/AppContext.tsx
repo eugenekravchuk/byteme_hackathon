@@ -1,14 +1,13 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
-  accessibilityFeatures,
-  accessibilityLevels,
-  categories,
+  accessibilityFeatures as mockAccessibilityFeatures,
+  accessibilityLevels as mockAccessibilityLevels,
+  categories as mockCategories,
   currentUser,
   locations as mockLocations,
   users as mockUsers
 } from '../data/mockData';
-import { AccessibilityFeature, AccessibilityLevel, Filter, Location, Review, User } from '../types';
+import { AccessibilityFeature, AccessibilityLevel, Category, Filter, Location, Review, User } from '../types';
 import { toast } from '../hooks/use-toast';
 
 interface AppContextType {
@@ -16,12 +15,15 @@ interface AppContextType {
   locations: Location[];
   accessibilityFeatures: AccessibilityFeature[];
   accessibilityLevels: AccessibilityLevel[];
-  categories: string[];
+  categories: Category[];
   filters: Filter;
   selectedLocation: Location | null;
   setUser: (user: User | null) => void;
   setFilters: (filters: Filter) => void;
   setSelectedLocation: (location: Location | null) => void;
+  setCategories: (categories: Category[]) => void;
+  setAccessibilityFeatures: (features: AccessibilityFeature[]) => void;
+  setAccessibilityLevels: (levels: AccessibilityLevel[]) => void;
   addLocation: (location: Location) => void;
   updateLocation: (location: Location) => void;
   addReview: (locationId: string, review: Omit<Review, 'id' | 'userId' | 'userName' | 'date'>) => void;
@@ -43,10 +45,13 @@ const initialFilters: Filter = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(currentUser); // Auto-login for demo
+  const [user, setUser] = useState<User | null>(currentUser);
   const [locations, setLocations] = useState<Location[]>(mockLocations);
   const [filters, setFilters] = useState<Filter>(initialFilters);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [accessibilityFeatures, setAccessibilityFeatures] = useState<AccessibilityFeature[]>(mockAccessibilityFeatures);
+  const [accessibilityLevels, setAccessibilityLevels] = useState<AccessibilityLevel[]>(mockAccessibilityLevels);
 
   const addLocation = (location: Location) => {
     setLocations([...locations, location]);
@@ -100,15 +105,14 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return {
           ...location,
           reviews: updatedReviews,
-          rating: parseFloat(total),
+          rating: parseFloat(totalRating.toFixed(1)),
         };
       }
       return location;
     });
 
     setLocations(updatedLocations);
-    
-    // Update selected location if it's the one being reviewed
+
     if (selectedLocation?.id === locationId) {
       const updatedLocation = updatedLocations.find((loc) => loc.id === locationId);
       if (updatedLocation) {
@@ -137,8 +141,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       return;
     }
 
-    // In a real app, this would send the suggestion to be reviewed
-    // For our demo, we'll apply changes directly if the user has special access
     if (user.isSpecialAccess) {
       const updatedLocations = locations.map((location) => {
         if (location.id === locationId) {
@@ -152,7 +154,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       });
 
       setLocations(updatedLocations);
-      
+
       if (selectedLocation?.id === locationId) {
         const updatedLocation = updatedLocations.find((loc) => loc.id === locationId);
         if (updatedLocation) {
@@ -183,6 +185,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setUser,
     setFilters,
     setSelectedLocation,
+    setCategories,
+    setAccessibilityFeatures,
+    setAccessibilityLevels,
     addLocation,
     updateLocation,
     addReview,

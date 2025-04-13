@@ -45,3 +45,29 @@ export async function updateLocationFeatures(locationId: string, featureIds: num
   return await response.json();
 }
 
+export async function fetchCategories() {
+  const response = await fetch(`${BASE_URL}/categories/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch categories: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchAccessibilityFeatures() {
+  const response = await fetch(`${BASE_URL}/features/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch accessibility features: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchAccessibilityLevels() {
+  const response = await fetch(`${BASE_URL}/accessibility_levels/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch accessibility levels: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
