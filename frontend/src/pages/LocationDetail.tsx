@@ -27,6 +27,10 @@ import { AppProvider } from "../context/AppContext";
 import { fetchLocationById, fetchLocations } from "../lib/api";
 import { ReviewForm } from "@/components/ReviewForm";
 
+import L from "leaflet";
+import "leaflet-routing-machine";
+import { AttributionControl } from "react-leaflet";
+
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const {
@@ -39,6 +43,9 @@ const LocationDetail = () => {
 
   const [location, setLocation] = useState<any>(null);
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState<any>(null); // Store user's current location
+  const [routeControl, setRouteControl] = useState<any>(null); // Store Leaflet routing control instance
+  const [map, setMap] = useState<any>(null); // Store Leaflet map instance
 
   const navigate = useNavigate();
 
@@ -83,6 +90,51 @@ const LocationDetail = () => {
     };
   }, [id, setSelectedLocation]);
 
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+
+          setUserLocation({
+            lat: userLat,
+            lng: userLng,
+          });
+
+          const destinationLat = location.latitude;
+          const destinationLng = location.longitude;
+
+          const leafletMap = L.map("map", {
+            center: [destinationLat, destinationLng],
+            zoom: 10,
+            scrollWheelZoom: true,
+          });
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors",
+          }).addTo(leafletMap);
+
+          setMap(leafletMap);
+
+          if (location && location.latitude && location.longitude) {
+            L.marker([destinationLat, destinationLng])
+              .addTo(leafletMap)
+              .bindPopup(location.name || "Destination")
+              .openPopup();
+          }
+        },
+        (error) => {
+          console.error("Error getting geolocation: ", error);
+          setUserLocation(null);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+      setUserLocation(null);
+    }
+  }, [location]);
+
   if (!location) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -120,6 +172,28 @@ const LocationDetail = () => {
       </span>
     </div>
   );
+
+  const handleGetDirections = () => {
+    if (!userLocation || !location || !map) return;
+
+    if (!routeControl) {
+      const newRouteControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userLocation.lat, userLocation.lng),
+          L.latLng(location.latitude, location.longitude),
+        ],
+        createMarker: () => null,
+        routeWhileDragging: true,
+      }).addTo(map);
+
+      setRouteControl(newRouteControl);
+    } else {
+      routeControl.setWaypoints([
+        L.latLng(userLocation.lat, userLocation.lng),
+        L.latLng(location.latitude, location.longitude),
+      ]);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -213,18 +287,12 @@ const LocationDetail = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button
-                  className="w-full"
-                  onClick={() =>
-                    alert(
-                      "Directions feature will be implemented in the next version"
-                    )
-                  }
-                >
+                <Button className="w-full" onClick={handleGetDirections}>
                   <Accessibility className="h-4 w-4 mr-2" />
                   Get Accessible Directions
                 </Button>
               </CardFooter>
+              <div id="map" style={{ height: "400px", width: "100%" }}></div>
             </Card>
           </div>
 
