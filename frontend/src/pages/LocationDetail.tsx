@@ -429,9 +429,6 @@ const LocationDetail = () => {
                           </div>
                         </div>
                         <p className="mt-2">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(review.date).toLocaleDateString()}
-                        </p>
                       </div>
                     ))}
                   </div>
