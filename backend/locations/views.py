@@ -5,6 +5,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .models import Location, AccessibilityFeature, Review, Category, AccessibilityLevel, Proposition
 from .serializers import LocationSerializer, AccessibilityFeatureSerializer, ReviewSerializer, CategorySerializer, AccessibilityLevelSerializer, PropositionSerializer
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Location, AccessibilityFeature
+
+
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
@@ -25,28 +32,32 @@ class LocationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(rating__gte=min_rating)
 
         return queryset
-    
-    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
-    def add_feature(self, request, pk=None):
-        location = self.get_object()
-        feature_id = request.data.get("feature_id")
-        try:
-            feature = AccessibilityFeature.objects.get(id=feature_id)
-            location.accessibility_features.add(feature)
-            return Response({"detail": "Feature added."})
-        except AccessibilityFeature.DoesNotExist:
-            return Response({"detail": "Feature not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
-    def remove_feature(self, request, pk=None):
-        location = self.get_object()
-        feature_id = request.data.get("feature_id")
-        try:
-            feature = AccessibilityFeature.objects.get(id=feature_id)
-            location.accessibility_features.remove(feature)
-            return Response({"detail": "Feature removed."})
-        except AccessibilityFeature.DoesNotExist:
-            return Response({"detail": "Feature not found."}, status=status.HTTP_404_NOT_FOUND)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_feature_to_location(request, location_id, feature_id):
+    try:
+        location = Location.objects.get(id=location_id)
+        feature = AccessibilityFeature.objects.get(id=feature_id)
+        location.accessibility_features.add(feature)
+        return Response({"message": "Feature added"}, status=status.HTTP_200_OK)
+    except Location.DoesNotExist:
+        return Response({"error": "Location not found"}, status=status.HTTP_404_NOT_FOUND)
+    except AccessibilityFeature.DoesNotExist:
+        return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def remove_feature_from_location(request, location_id, feature_id):
+    try:
+        location = Location.objects.get(id=location_id)
+        feature = AccessibilityFeature.objects.get(id=feature_id)
+        location.accessibility_features.remove(feature)
+        return Response({"message": "Feature removed"}, status=status.HTTP_200_OK)
+    except Location.DoesNotExist:
+        return Response({"error": "Location not found"}, status=status.HTTP_404_NOT_FOUND)
+    except AccessibilityFeature.DoesNotExist:
+        return Response({"error": "Feature not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class AccessibilityFeatureViewSet(viewsets.ModelViewSet): 
     queryset = AccessibilityFeature.objects.all()

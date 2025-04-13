@@ -25,12 +25,19 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AppProvider } from "../context/AppContext";
-import { fetchLocationById, fetchLocations } from "../lib/api";
+import {
+  addFeatureToLocation,
+  fetchLocationById,
+  fetchLocations,
+  removeFeatureFromLocation,
+} from "../lib/api";
 import { ReviewForm } from "@/components/ReviewForm";
 
 import L from "leaflet";
 import "leaflet-routing-machine";
 import { AttributionControl } from "react-leaflet";
+import { toast } from "../hooks/use-toast";
+import { FeatureDialog } from "../components/FeatureDialog";
 
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,16 +66,50 @@ const LocationDetail = () => {
     window.location.reload();
   };
 
-  const handleRemoveFeature = (featureId: string) => {
+  const handleRemoveFeature = async (featureId: number) => {
     if (!location) return;
-    const updatedFeatures = location.accessibilityFeatures.filter(
-      (f: any) => f.id !== featureId
-    );
-    setLocation({ ...location, accessibilityFeatures: updatedFeatures });
+    try {
+      const token = localStorage.getItem("access_token")!;
+      await removeFeatureFromLocation(location.id, featureId, token);
+      const updated = location.accessibilityFeatures.filter(
+        (f: any) => f.id !== featureId
+      );
+      setLocation({ ...location, accessibilityFeatures: updated });
+      toast({
+        title: "Feature removed",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to remove feature",
+      });
+    }
   };
 
-  const handleAddFeature = () => {
-    alert("Feature editing will be implemented.");
+  const handleAddFeature = async () => {
+    const featureId = prompt("Enter feature ID to add:");
+    if (!featureId || isNaN(+featureId)) return;
+
+    try {
+      const token = localStorage.getItem("access_token")!;
+      await addFeatureToLocation(location.id, +featureId, token);
+      const newFeature = accessibilityFeatures.find((f) => f.id === +featureId);
+      if (newFeature) {
+        setLocation({
+          ...location,
+          accessibilityFeatures: [
+            ...location.accessibilityFeatures,
+            newFeature,
+          ],
+        });
+      }
+      toast({
+        title: "Feature added",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to add feature",
+      });
+    }
   };
 
   useEffect(() => {
@@ -97,7 +138,6 @@ const LocationDetail = () => {
       setSelectedLocation(null);
     };
   }, [id, setSelectedLocation]);
-  
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -154,7 +194,7 @@ const LocationDetail = () => {
       </div>
     );
   }
-  
+
   if (!location) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -168,7 +208,6 @@ const LocationDetail = () => {
       </div>
     );
   }
-  
 
   const getAccessibilityLevel = () => {
     return accessibilityLevels.find(
@@ -295,13 +334,40 @@ const LocationDetail = () => {
                     </div>
                     {user?.isSpecialAccess && (
                       <div className="mt-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleAddFeature}
-                        >
-                          <Plus className="h-4 w-4 mr-1" /> Add Feature
-                        </Button>
+                        <FeatureDialog
+                          availableFeatures={accessibilityFeatures.filter(
+                            (f) =>
+                              !location.accessibilityFeatures.some(
+                                (af: any) => af.id === f.id
+                              )
+                          )}
+                          onConfirm={async (featureId) => {
+                            try {
+                              const token =
+                                localStorage.getItem("access_token")!;
+                              await addFeatureToLocation(
+                                location.id,
+                                +featureId,
+                                token
+                              );
+                              const newFeature = accessibilityFeatures.find(
+                                (f) => f.id === +featureId
+                              );
+                              if (newFeature) {
+                                setLocation({
+                                  ...location,
+                                  accessibilityFeatures: [
+                                    ...location.accessibilityFeatures,
+                                    newFeature,
+                                  ],
+                                });
+                              }
+                              toast({ title: "Feature added" });
+                            } catch (err) {
+                              toast({ title: "Failed to add feature" });
+                            }
+                          }}
+                        />
                       </div>
                     )}
                   </div>
