@@ -8,8 +8,9 @@ import LocationDetailsPanel from './LocationDetailsPanel';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { LatLngExpression, Icon } from 'leaflet';
-
+import { fetchLocations } from '../lib/api';
 import L from 'leaflet';
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -18,12 +19,19 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapView = () => {
-  const { locations, filters, accessibilityLevels, selectedLocation, setSelectedLocation } = useApp();
+  const { filters, accessibilityLevels, selectedLocation, setSelectedLocation } = useApp();
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
   useEffect(() => {
-    let filtered = [...locations];
+    fetchLocations()
+      .then(setAllLocations)
+      .catch((err) => console.error('Failed to fetch locations:', err));
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...allLocations];
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(location =>
@@ -50,11 +58,13 @@ const MapView = () => {
     }
 
     setFilteredLocations(filtered);
-  }, [locations, filters]);
+  }, [allLocations, filters]);
 
   const handleSelectLocation = (location: Location) => {
     setSelectedLocation(location);
-    setRoute((prev) => [...prev, [location.coordinates.lat, location.coordinates.lng]]);
+    if (location.coordinates && location.coordinates.lat !== undefined && location.coordinates.lng !== undefined) {
+      setRoute((prev) => [...prev, [location.coordinates.lat, location.coordinates.lng]]);
+    }
   };
 
   const handlePlanRoute = () => {
@@ -78,23 +88,22 @@ const MapView = () => {
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-
           {filteredLocations.map((location) => (
-            <Marker
-              key={location.id}
-              position={[location.coordinates.lat, location.coordinates.lng]}
-              eventHandlers={{ click: () => handleSelectLocation(location) }}
-            >
-              <Popup>
-                <div className="text-sm">
-                  <strong>{location.name}</strong>
-                  <br />
-                  Rating: {location.rating}
-                </div>
-              </Popup>
-            </Marker>
+            location.latitude !== undefined && location.longitude !== undefined && (
+              <Marker
+                key={location.id}
+                position={[location.latitude, location.longitude]}
+                eventHandlers={{ click: () => handleSelectLocation(location) }}
+              >
+                <Popup>
+                  <div className="text-sm">
+                    <strong>{location.name}</strong><br />
+                    Rating: {location.rating}
+                  </div>
+                </Popup>
+              </Marker>
+            )
           ))}
-
           {route.length > 1 && <Polyline positions={route} color="blue" />}
         </MapContainer>
       </div>
