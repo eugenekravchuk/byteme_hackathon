@@ -127,3 +127,38 @@ export const removeFeatureFromLocation = async (
     throw new Error("Failed to remove feature");
   }
 };
+
+export const fetchPropositions = async () => {
+  const response = await fetch(`${BASE_URL}/propositions/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to fetch accessibility levels: ${response.status} ${errorText}`
+    );
+  }
+  return response.json();
+};
+
+export const postProposition = async (
+  locationId: string,
+  comment: string,
+  token: string
+) => {
+  const response = await fetch(`${BASE_URL}/propositions/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ text: comment, location: locationId }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to post proposition: ${response.status} ${errorText}`
+    );
+  }
+
+  return response.json();
+};

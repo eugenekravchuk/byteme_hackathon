@@ -30,7 +30,9 @@ import {
   fetchAccessibilityFeatures,
   fetchLocationById,
   fetchLocations,
+  postProposition,
   removeFeatureFromLocation,
+  fetchPropositions,
 } from "../lib/api";
 import { ReviewForm } from "@/components/ReviewForm";
 
@@ -87,6 +89,19 @@ const LocationDetail = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (id && user?.isSpecialAccess) {
+      fetchPropositions() // returns all propositions
+        .then((data) => {
+          const filtered = data.filter(
+            (p: any) => String(p.location) === String(id) // or p.location.id === Number(id)
+          );
+          setPropositions(filtered);
+        })
+        .catch((err) => console.error("Failed to fetch propositions", err));
+    }
+  }, [id, user]);
 
   useEffect(() => {
     if (id) {
@@ -169,6 +184,8 @@ const LocationDetail = () => {
         </main>
       </div>
     );
+  } else {
+    console.log(propositions);
   }
 
   if (!location) {
@@ -412,6 +429,81 @@ const LocationDetail = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <p>No reviews yet.</p>
                     <p>Be the first to share your experience!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Propositions</CardTitle>
+                </div>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6">
+                {/* 🔒 SHOW LIST ONLY IF isSpecialAccess */}
+                {user?.isSpecialAccess && (
+                  <>
+                    {propositions.length > 0 ? (
+                      <div className="space-y-4 mb-6">
+                        {propositions.map((prop) => (
+                          <div
+                            key={prop.id}
+                            className="bg-gray-50 rounded-lg p-4"
+                          >
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium">{prop.text}</span>
+                            </div>
+                            <p className="mt-2">{prop.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No propositions yet.</p>
+                        <p>Be the first to suggest something helpful!</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ✍️ SUGGESTION FORM IS ALWAYS VISIBLE TO LOGGED-IN USERS */}
+                {user && (
+                  <div className="mt-2">
+                    <textarea
+                      className="w-full p-3 border rounded-md"
+                      rows={3}
+                      placeholder="Suggest an improvement..."
+                      value={newProposition}
+                      onChange={(e) => setNewProposition(e.target.value)}
+                    />
+                    <Button
+                      className="mt-2"
+                      disabled={!newProposition.trim()}
+                      onClick={async () => {
+                        try {
+                          const token = localStorage.getItem("access_token")!;
+                          const newProp = await postProposition(
+                            id,
+                            newProposition,
+                            token
+                          );
+                          if (user.isSpecialAccess) {
+                            setPropositions([...propositions, newProp]);
+                          }
+                          setNewProposition("");
+                          toast({ title: "Proposition submitted" });
+                        } catch (err) {
+                          toast({
+                            title: "Error",
+                            description: "Could not submit your proposition.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      Submit Proposition
+                    </Button>
                   </div>
                 )}
               </CardContent>
