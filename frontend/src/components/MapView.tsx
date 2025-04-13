@@ -1,24 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useApp } from '../context/AppContext';
-import { Location } from '../types';
-import { Button } from './ui/button';
-import LocationDetailsPanel from './LocationDetailsPanel';
-import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
-import { fetchLocations } from '../lib/api';
-import L from 'leaflet';
+import React, { useState, useEffect, useRef } from "react";
+
+import { useApp } from "../context/AppContext";
+
+import { Location } from "../types";
+
+import { Button } from "./ui/button";
+
+import LocationDetailsPanel from "./LocationDetailsPanel";
+
+import { Link } from "react-router-dom";
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+} from "react-leaflet";
+
+import { LatLngExpression } from "leaflet";
+
+import { fetchLocations } from "../lib/api";
+
+import L from "leaflet";
+
 import "leaflet-routing-machine";
 
 const MapView = () => {
   const { filters, setSelectedLocation } = useApp();
-  const [allLocations, setAllLocations] = useState<Location[]>([]);
-  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
-  const [userLocation, setUserLocation] = useState<any>(null);
-  const [routeControls, setRouteControls] = useState<any[]>([]);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const [mapReady, setMapReady] = useState(false);
 
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
+
+  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
+
+  const [userLocation, setUserLocation] = useState<any>(null);
+
+  const [routeControls, setRouteControls] = useState<any[]>([]);
+
+  const [mapInstance, setMapInstance] = useState<any>(null);
+
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     fetchLocations()
@@ -28,41 +49,48 @@ const MapView = () => {
         let filtered = [...locations];
 
         if (filters.categories.length > 0) {
-          filtered = filtered.filter(location =>
-            Array.isArray(location.categories) &&
-            location.categories.some((category: any) =>
-              filters.categories.includes(category.id)
-            )
+          filtered = filtered.filter(
+            (location) =>
+              Array.isArray(location.categories) &&
+              location.categories.some((category: any) =>
+                filters.categories.includes(category.id)
+              )
           );
         }
 
         if (filters.accessibilityFeatures.length > 0) {
-          filtered = filtered.filter(location =>
-            Array.isArray(location.accessibility_features) &&
-            filters.accessibilityFeatures.every((featureId) =>
-              location.accessibility_features.some((f: any) => f.id === featureId)
-            )
+          filtered = filtered.filter(
+            (location) =>
+              Array.isArray(location.accessibility_features) &&
+              filters.accessibilityFeatures.every((featureId) =>
+                location.accessibility_features.some(
+                  (f: any) => f.id === featureId
+                )
+              )
           );
         }
 
         if (filters.accessibilityLevels.length > 0) {
-          filtered = filtered.filter(location =>
-            Array.isArray(location.accessibility_levels) &&
-            location.accessibility_levels.some((level: any) =>
-              filters.accessibilityLevels.includes(level.id)
-            )
+          filtered = filtered.filter(
+            (location) =>
+              Array.isArray(location.accessibility_levels) &&
+              location.accessibility_levels.some((level: any) =>
+                filters.accessibilityLevels.includes(level.id)
+              )
           );
         }
 
         if (filters.minRating > 0) {
-          filtered = filtered.filter(location => Number(location.rating) >= filters.minRating);
+          filtered = filtered.filter(
+            (location) => Number(location.rating) >= filters.minRating
+          );
         }
 
         setFilteredLocations(filtered);
       })
-      .catch((err) => console.error('Failed to fetch locations:', err));
-  }, [filters]);
 
+      .catch((err) => console.error("Failed to fetch locations:", err));
+  }, [filters]);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -70,27 +98,39 @@ const MapView = () => {
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
+
             lng: position.coords.longitude,
           });
 
-
           if (mapInstance) {
-            mapInstance.setView([position.coords.latitude, position.coords.longitude], 13);
+            mapInstance.setView(
+              [position.coords.latitude, position.coords.longitude],
+              13
+            );
           }
         },
+
         (error) => {
-          console.error('Error getting geolocation: ', error);
+          console.error("Error getting geolocation: ", error);
         }
       );
     }
   }, [mapInstance]);
+
+  // Handle location selection
 
   const handleSelectLocation = (location: Location) => {
     setSelectedLocation(location);
   };
 
   const handlePlanRoute = () => {
-    if (!userLocation || filteredLocations.length === 0 || !mapInstance || !mapReady) return;
+    if (
+      !userLocation ||
+      filteredLocations.length === 0 ||
+      !mapInstance ||
+      !mapReady
+    )
+      return;
 
     routeControls.forEach((control) => control.remove());
 
@@ -98,11 +138,16 @@ const MapView = () => {
       const routeControl = L.Routing.control({
         waypoints: [
           L.latLng(userLocation.lat, userLocation.lng),
+
           L.latLng(location.latitude, location.longitude),
         ],
-        createMarker: () => null, 
-        routeWhileDragging: true, 
-        alternatives: false,  
+
+        createMarker: () => null,
+
+        routeWhileDragging: true,
+
+        alternatives: false,
+
         showAlternatives: false,
       });
 
@@ -116,20 +161,23 @@ const MapView = () => {
 
   const renderMap = () => (
     <MapContainer
-      whenReady={(event) => { 
+      whenReady={(event) => {
         const map = event.target;
+
         setMapInstance(map);
+
         setMapReady(true);
       }}
       center={[49.8397, 24.0297]}
       zoom={13}
       scrollWheelZoom={true}
-      style={{ height: '100%', width: '100%' }}
+      style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
+        attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
       {filteredLocations.map((location) =>
         location.latitude && location.longitude ? (
           <Marker
@@ -140,7 +188,8 @@ const MapView = () => {
             }}
           >
             <Popup>
-              <strong>{location.name}</strong><br />
+              <strong>{location.name}</strong>
+              <br />
               Rating: {location.rating}
             </Popup>
           </Marker>
@@ -157,7 +206,8 @@ const MapView = () => {
 
       <div className="flex justify-between items-center py-2">
         <p className="text-sm text-muted-foreground">
-          Showing {filteredLocations.length} location{filteredLocations.length !== 1 ? 's' : ''}
+          Showing {filteredLocations.length} location
+          {filteredLocations.length !== 1 ? "s" : ""}
         </p>
 
         <div className="flex gap-2">
@@ -165,7 +215,9 @@ const MapView = () => {
             onClick={handlePlanRoute}
             variant="outline"
             className="text-xs"
-            disabled={!userLocation || filteredLocations.length === 0 || !mapReady}
+            disabled={
+              !userLocation || filteredLocations.length === 0 || !mapReady
+            }
           >
             Plan Accessible Route
           </Button>
