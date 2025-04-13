@@ -246,7 +246,7 @@ const LocationDetail = () => {
                   Get Accessible Directions
                 </Button>
               </CardFooter>
-              <div id="map" style={{ height: '400px', width: '100%' }}></div>
+              <div id="map" style={{ height: '400px', width: '100%', zIndex: 0 }}></div>
             </Card>
           </div>
 
