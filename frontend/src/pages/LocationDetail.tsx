@@ -1,34 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useApp } from "../context/AppContext";
-import NavBar from "../components/NavBar";
-import { Button } from "../components/ui/button";
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+import NavBar from '../components/NavBar';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Star, MapPin, MessageSquare, Accessibility, Check, Trash2, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { AppProvider } from '../context/AppContext';
+import { fetchLocationById, updateLocationFeatures } from '../lib/api';
+import { ReviewForm } from '@/components/ReviewForm';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  Star,
-  MapPin,
-  ArrowLeft,
-  MessageSquare,
-  Accessibility,
-  Check,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { AppProvider } from "../context/AppContext";
-import { ReviewForm } from "@/components/ReviewForm";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const {
-    locations,
     accessibilityFeatures,
     accessibilityLevels,
     user,
@@ -38,30 +27,87 @@ const LocationDetail = () => {
 
   const [location, setLocation] = useState<any>(null);
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [isAddFeatureDialogOpen, setIsAddFeatureDialogOpen] = useState(false);
+  const [selectedAccessibilityFeatures, setSelectedAccessibilityFeatures] = useState<string[]>([]);
 
-  const navigate = useNavigate();  // Initialize navigate for programmatic navigation
+  const navigate = useNavigate();
+
+  const token = user?.token || localStorage.getItem('token') || '';
 
   const handleAddReview = (rating: number, review: string) => {
     if (!location) return;
-
     addReview(location.id, { rating, comment: review });
+    setIsReviewFormOpen(false);
+  };
 
-    setIsReviewFormOpen(false);  // Close the review form after submission
+  const handleRemoveAccessibilityFeature = async (featureId: string) => {
+    if (!location || !token) return;
+
+    const updated = location.accessibilityFeatures.filter((f: any) => f.id !== featureId);
+
+    try {
+      const updatedResponse = await updateLocationFeatures(location.id, updated.map((f: any) => f.id), token);
+      setLocation({ ...location, accessibilityFeatures: updatedResponse.accessibility_features || [] });
+    } catch (err) {
+      console.error('Failed to remove accessibility feature:', err);
+    }
+  };
+
+  const handleSaveAccessibilityFeatures = async () => {
+    if (!location || !token) return;
+
+    const merged = Array.from(
+      new Set([...location.accessibilityFeatures.map((f: any) => f.id), ...selectedAccessibilityFeatures])
+    );
+
+    try {
+      const updatedResponse = await updateLocationFeatures(location.id, merged, token);
+      setLocation((prev: any) => ({
+        ...prev,
+        accessibilityFeatures: updatedResponse.accessibility_features || [],
+      }));
+      setIsAddFeatureDialogOpen(false);
+      setSelectedAccessibilityFeatures([]);
+    } catch (err) {
+      console.error('Failed to update accessibility features:', err);
+    }
   };
 
   useEffect(() => {
     if (id) {
-      const foundLocation = locations.find((loc) => loc.id === id);
-      if (foundLocation) {
-        setLocation(foundLocation);
-        setSelectedLocation(foundLocation);
-      }
+      fetchLocationById(id)
+        .then((loc) => {
+          setLocation({
+            ...loc,
+            reviews: Array.isArray(loc.reviews) ? loc.reviews : [],
+            accessibilityFeatures: Array.isArray(loc.accessibility_features) ? loc.accessibility_features : [],
+            accessibilityLevel: loc.accessibility_levels?.[0]?.id || '',
+          });
+          setSelectedLocation(loc);
+        })
+        .catch((err) => {
+          console.error('Failed to load location:', err);
+        });
     }
-
     return () => {
       setSelectedLocation(null);
     };
-  }, [id, locations, setSelectedLocation]);
+  }, [id, setSelectedLocation]);
+
+  const getAccessibilityLevel = () =>
+    accessibilityLevels.find((level) => level.id === location.accessibilityLevel);
+
+  const renderStarRating = (rating: number) => (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-5 w-5 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+        />
+      ))}
+      <span className="ml-2 text-lg font-medium">{Number(rating).toFixed(1)}</span>
+    </div>
+  );
 
   if (!location) {
     return (
@@ -70,47 +116,24 @@ const LocationDetail = () => {
         <main className="flex-1 container mx-auto p-4 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-xl font-bold mb-4">Location not found</h1>
-            <Button onClick={() => navigate("/")}>Back to Map</Button>  {/* Programmatic navigation */}
+            <Button onClick={() => navigate("/")}>Back to Map</Button>
           </div>
         </main>
       </div>
     );
   }
 
-  const getAccessibilityLevel = () => {
-    return accessibilityLevels.find(
-      (level) => level.id === location.accessibilityLevel
-    );
-  };
-
   const level = getAccessibilityLevel();
-
-  const renderStarRating = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-5 w-5 ${
-              star <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-            }`}
-          />
-        ))}
-        <span className="ml-2 text-lg font-medium">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
       <main className="flex-1 container mx-auto p-4">
         <div className="mb-6">
-          <Button onClick={() => navigate("/")}>Back to Map</Button>  {/* Programmatic navigation */}
+          <Button onClick={() => navigate("/")}>Back to Map</Button>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Left column - Main info */}
           <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader>
@@ -122,15 +145,10 @@ const LocationDetail = () => {
                       {location.address}
                     </CardDescription>
                   </div>
-
-                  <Badge
-                    className="text-white"
-                    style={{ backgroundColor: level?.color }}
-                  >
+                  <Badge className="text-white" style={{ backgroundColor: level?.color }}>
                     {level?.name}
                   </Badge>
                 </div>
-
                 <div className="mt-4">{renderStarRating(location.rating)}</div>
               </CardHeader>
               <Separator />
@@ -138,114 +156,87 @@ const LocationDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium mb-2">Description</h3>
-                    <p>{location.description || "No description available."}</p>
+                    <p>{location.description || 'No description available.'}</p>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium mb-2">
-                      Accessibility Information
-                    </h3>
-                    <p className="text-muted-foreground mb-2">{level?.description}</p>
-
-                    <h4 className="font-medium mt-4 mb-2">
-                      Accessibility Features
-                    </h4>
+                    <h4 className="font-medium mt-4 mb-2">Accessibility Features</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {location.accessibilityFeatures.map((featureId: string) => {
-                        const feature = accessibilityFeatures.find(
-                          (f) => f.id === featureId
-                        );
-                        if (!feature) return null;
-
-                        return (
-                          <div key={featureId} className="flex items-center">
-                            <Check className="h-4 w-4 mr-2 text-accessible2" />
-                            <span>{feature.name}</span>
+                      {Array.isArray(location.accessibilityFeatures) &&
+                        location.accessibilityFeatures.map((feature: any) => (
+                          <div key={feature.id} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-accessible2" />
+                              <span>{feature.name}</span>
+                            </div>
+                            {user?.isSpecialAccess && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleRemoveAccessibilityFeature(feature.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
                           </div>
-                        );
-                      })}
+                        ))}
                     </div>
+                    {user?.isSpecialAccess && (
+                      <div className="mt-4">
+                        <Dialog open={isAddFeatureDialogOpen} onOpenChange={setIsAddFeatureDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Plus className="h-4 w-4 mr-1" /> Add Feature
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Select Accessibility Features</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                              {accessibilityFeatures.map((feature) => (
+                                <div key={feature.id} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={feature.id}
+                                    checked={selectedAccessibilityFeatures.includes(feature.id)}
+                                    onCheckedChange={(checked) => {
+                                      setSelectedAccessibilityFeatures((prev) =>
+                                        checked ? [...prev, feature.id] : prev.filter((id) => id !== feature.id)
+                                      );
+                                    }}
+                                  />
+                                  <label htmlFor={feature.id} className="text-sm">{feature.name}</label>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-4 flex justify-end gap-2">
+                              <Button variant="outline" onClick={() => setIsAddFeatureDialogOpen(false)}>
+                                Cancel
+                              </Button>
+                              <Button onClick={handleSaveAccessibilityFeatures}>Save</Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button
-                  className="w-full"
-                  onClick={() =>
-                    alert("Directions feature will be implemented in the next version")
-                  }
-                >
+                <Button className="w-full" onClick={() => alert('Directions feature will be implemented in the next version')}>
                   <Accessibility className="h-4 w-4 mr-2" />
                   Get Accessible Directions
                 </Button>
               </CardFooter>
             </Card>
           </div>
-
-          {/* Right column - Reviews */}
-          <div>
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Reviews</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsReviewFormOpen(true)}  // Open review form dialog
-                    className="h-8 text-xs"
-                    disabled={!user}  // Disable if the user is not logged in
-                  >
-                    <MessageSquare className="h-3 w-3 mr-1" />
-                    Add Review
-                  </Button>
-                </div>
-              </CardHeader>
-              <Separator />
-              <CardContent className="pt-6">
-                {location.reviews.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No reviews yet.</p>
-                    <p>Be the first to share your experience!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {location.reviews.map((review: any) => (
-                      <div key={review.id} className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <span className="font-medium">{review.userName}</span>
-                          <div className="flex items-center">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-3 w-3 ${
-                                  star <= review.rating
-                                    ? "text-yellow-400 fill-yellow-400"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="mt-2">{review.comment}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(review.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
-
-      {/* Review Form Dialog */}
       <ReviewForm
         locationName={location.name}
         isOpen={isReviewFormOpen}
-        onClose={() => setIsReviewFormOpen(false)}  // Close the review form
-        onSubmit={handleAddReview}  // Submit the review
+        onClose={() => setIsReviewFormOpen(false)}
+        onSubmit={handleAddReview}
       />
     </div>
   );
