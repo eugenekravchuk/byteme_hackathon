@@ -15,7 +15,6 @@ export interface AccessibilityLevel {
   id: string;
   name: string;
   color: string;
-  description: string;
 }
 
 export interface Category {
