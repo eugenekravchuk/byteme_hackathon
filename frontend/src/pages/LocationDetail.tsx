@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { AppProvider } from "../context/AppContext";
 import {
   addFeatureToLocation,
+  fetchAccessibilityFeatures,
   fetchLocationById,
   fetchLocations,
   removeFeatureFromLocation,
@@ -56,6 +57,8 @@ const LocationDetail = () => {
   const [map, setMap] = useState<any>(null);
   const [changeReview, setChangeReview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [propositions, setPropositions] = useState<any[]>([]);
+  const [newProposition, setNewProposition] = useState("");
 
   const navigate = useNavigate();
 
@@ -81,33 +84,6 @@ const LocationDetail = () => {
     } catch (err: any) {
       toast({
         title: "Failed to remove feature",
-      });
-    }
-  };
-
-  const handleAddFeature = async () => {
-    const featureId = prompt("Enter feature ID to add:");
-    if (!featureId || isNaN(+featureId)) return;
-
-    try {
-      const token = localStorage.getItem("access_token")!;
-      await addFeatureToLocation(location.id, +featureId, token);
-      const newFeature = accessibilityFeatures.find((f) => f.id === +featureId);
-      if (newFeature) {
-        setLocation({
-          ...location,
-          accessibilityFeatures: [
-            ...location.accessibilityFeatures,
-            newFeature,
-          ],
-        });
-      }
-      toast({
-        title: "Feature added",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Failed to add feature",
       });
     }
   };
