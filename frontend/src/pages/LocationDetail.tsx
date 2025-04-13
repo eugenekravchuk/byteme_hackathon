@@ -1,15 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import NavBar from '../components/NavBar';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Star, MapPin, ArrowLeft, MessageSquare, Accessibility, Check, Trash2, Plus } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { AppProvider } from '../context/AppContext';
-import { fetchLocationById, fetchLocations } from '../lib/api';
-import { ReviewForm } from '@/components/ReviewForm';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+import NavBar from "../components/NavBar";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Star,
+  MapPin,
+  ArrowLeft,
+  MessageSquare,
+  Accessibility,
+  Check,
+  Trash2,
+  Plus,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AppProvider } from "../context/AppContext";
+import { fetchLocationById, fetchLocations } from "../lib/api";
+import { ReviewForm } from "@/components/ReviewForm";
 
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,12 +50,14 @@ const LocationDetail = () => {
 
   const handleRemoveFeature = (featureId: string) => {
     if (!location) return;
-    const updatedFeatures = location.accessibilityFeatures.filter((f: any) => f.id !== featureId);
+    const updatedFeatures = location.accessibilityFeatures.filter(
+      (f: any) => f.id !== featureId
+    );
     setLocation({ ...location, accessibilityFeatures: updatedFeatures });
   };
 
   const handleAddFeature = () => {
-    alert('Feature editing will be implemented.');
+    alert("Feature editing will be implemented.");
   };
 
   useEffect(() => {
@@ -49,13 +67,15 @@ const LocationDetail = () => {
           setLocation({
             ...loc,
             reviews: Array.isArray(loc.reviews) ? loc.reviews : [],
-            accessibilityFeatures: Array.isArray(loc.accessibility_features) ? loc.accessibility_features : [],
-            accessibilityLevel: loc.accessibility_levels?.[0]?.id || '',
+            accessibilityFeatures: Array.isArray(loc.accessibility_features)
+              ? loc.accessibility_features
+              : [],
+            accessibilityLevel: loc.accessibility_levels?.[0]?.id || "",
           });
           setSelectedLocation(loc);
         })
         .catch((err) => {
-          console.error('Failed to load location:', err);
+          console.error("Failed to load location:", err);
         });
     }
     return () => {
@@ -78,7 +98,9 @@ const LocationDetail = () => {
   }
 
   const getAccessibilityLevel = () => {
-    return accessibilityLevels.find((level) => level.id === location.accessibilityLevel);
+    return accessibilityLevels.find(
+      (level) => level.id === location.accessibilityLevel
+    );
   };
 
   const level = getAccessibilityLevel();
@@ -88,10 +110,14 @@ const LocationDetail = () => {
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`h-5 w-5 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+          className={`h-5 w-5 ${
+            star <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+          }`}
         />
       ))}
-      <span className="ml-2 text-lg font-medium">{Number(rating).toFixed(1)}</span>
+      <span className="ml-2 text-lg font-medium">
+        {Number(rating).toFixed(1)}
+      </span>
     </div>
   );
 
@@ -105,62 +131,80 @@ const LocationDetail = () => {
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex gap-4">
-                <img
-                  src={location.image_url}
-                  alt={location.name}
-                  className="w-32 h-24 object-cover rounded-xl border"
-                />
-                <div className="flex flex-col justify-between w-full">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-2xl font-bold">{location.name}</CardTitle>
-                      <CardDescription className="flex items-center mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {location.address}
-                      </CardDescription>
+            <Card>
+              <CardHeader>
+                <div className="flex gap-4">
+                  <img
+                    src={location.image_url}
+                    alt={location.name}
+                    className="w-32 h-24 object-cover rounded-xl border"
+                  />
+                  <div className="flex flex-col justify-between w-full">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-2xl font-bold">
+                          {location.name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center mt-1">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {location.address}
+                        </CardDescription>
+                      </div>
+                      {/* Rounded accessibility badge */}
+                      <div
+                        className="w-4 h-4 rounded-full mt-1"
+                        style={{ backgroundColor: level?.color || "gray" }}
+                        title={level?.name}
+                      />
                     </div>
-                    {/* Rounded accessibility badge */}
-                    <div
-                      className="w-4 h-4 rounded-full mt-1"
-                      style={{ backgroundColor: level?.color || "gray"}}
-                      title={level?.name}
-                    />
+                    <div className="mt-4">
+                      {renderStarRating(location.rating)}
+                    </div>
                   </div>
-                  <div className="mt-4">{renderStarRating(location.rating)}</div>
                 </div>
-              </div>
-            </CardHeader>
+              </CardHeader>
               <Separator />
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium mb-2">Description</h3>
-                    <p>{location.description || 'No description available.'}</p>
+                    <p>{location.description || "No description available."}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium mt-4 mb-2">Accessibility Features</h4>
+                    <h4 className="font-medium mt-4 mb-2">
+                      Accessibility Features
+                    </h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {Array.isArray(location.accessibilityFeatures) && location.accessibilityFeatures.map((feature: any) => (
-                        <div key={feature.id} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <Check className="h-4 w-4 mr-2 text-accessible2" />
-                            <span>{feature.name}</span>
+                      {Array.isArray(location.accessibilityFeatures) &&
+                        location.accessibilityFeatures.map((feature: any) => (
+                          <div
+                            key={feature.id}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-accessible2" />
+                              <span>{feature.name}</span>
+                            </div>
+                            {user?.isSpecialAccess && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleRemoveFeature(feature.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
                           </div>
-                          {user?.isSpecialAccess && (
-                            <Button size="icon" variant="ghost" onClick={() => handleRemoveFeature(feature.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
+                        ))}
                     </div>
                     {user?.isSpecialAccess && (
                       <div className="mt-4">
-                        <Button size="sm" variant="outline" onClick={handleAddFeature}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleAddFeature}
+                        >
                           <Plus className="h-4 w-4 mr-1" /> Add Feature
                         </Button>
                       </div>
@@ -169,7 +213,14 @@ const LocationDetail = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" onClick={() => alert("Directions feature will be implemented in the next version")}>  
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    alert(
+                      "Directions feature will be implemented in the next version"
+                    )
+                  }
+                >
                   <Accessibility className="h-4 w-4 mr-2" />
                   Get Accessible Directions
                 </Button>
@@ -196,10 +247,14 @@ const LocationDetail = () => {
               </CardHeader>
               <Separator />
               <CardContent className="pt-6">
-                {Array.isArray(location.reviews) && location.reviews.length > 0 ? (
+                {Array.isArray(location.reviews) &&
+                location.reviews.length > 0 ? (
                   <div className="space-y-4">
                     {location.reviews.map((review: any) => (
-                      <div key={review.id} className="bg-gray-50 rounded-lg p-4">
+                      <div
+                        key={review.id}
+                        className="bg-gray-50 rounded-lg p-4"
+                      >
                         <div className="flex justify-between items-start">
                           <span className="font-medium">{review.userName}</span>
                           <div className="flex items-center">
@@ -207,7 +262,9 @@ const LocationDetail = () => {
                               <Star
                                 key={star}
                                 className={`h-3 w-3 ${
-                                  star <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                  star <= review.rating
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-gray-300"
                                 }`}
                               />
                             ))}
