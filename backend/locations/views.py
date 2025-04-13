@@ -1,3 +1,5 @@
+from rest_framework.decorators import action
+from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .models import Location, AccessibilityFeature, Review, Category, AccessibilityLevel, Proposition
@@ -23,6 +25,28 @@ class LocationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(rating__gte=min_rating)
 
         return queryset
+    
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def add_feature(self, request, pk=None):
+        location = self.get_object()
+        feature_id = request.data.get("feature_id")
+        try:
+            feature = AccessibilityFeature.objects.get(id=feature_id)
+            location.accessibility_features.add(feature)
+            return Response({"detail": "Feature added."})
+        except AccessibilityFeature.DoesNotExist:
+            return Response({"detail": "Feature not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def remove_feature(self, request, pk=None):
+        location = self.get_object()
+        feature_id = request.data.get("feature_id")
+        try:
+            feature = AccessibilityFeature.objects.get(id=feature_id)
+            location.accessibility_features.remove(feature)
+            return Response({"detail": "Feature removed."})
+        except AccessibilityFeature.DoesNotExist:
+            return Response({"detail": "Feature not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class AccessibilityFeatureViewSet(viewsets.ModelViewSet): 
     queryset = AccessibilityFeature.objects.all()

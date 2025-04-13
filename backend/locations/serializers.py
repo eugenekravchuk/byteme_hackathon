@@ -28,7 +28,7 @@ class PropositionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Proposition
-        fields = ['id', 'user', 'text', 'created_at']
+        fields = '__all__'
 
 class LocationSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
