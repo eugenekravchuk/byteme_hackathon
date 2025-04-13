@@ -25,8 +25,6 @@ export async function fetchMyReviews(token: string) {
     return res.json(); // returns: [{ id, comment, rating, date, location: { id, name, category } }]
 }
 
-// lib/api.ts
-
 export async function updateLocationFeatures(locationId: string, featureIds: number[], token: string) {
   const response = await fetch(`https://access-compass-django.onrender.com/api/locations/${locationId}/`, {
     method: 'PATCH',
@@ -44,6 +42,6 @@ export async function updateLocationFeatures(locationId: string, featureIds: num
     throw new Error(`Failed to update features: ${response.status} ${errorText}`);
   }
 
-  return await response.json(); // Should return updated location object
+  return await response.json();
 }
 

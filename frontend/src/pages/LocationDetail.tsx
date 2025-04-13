@@ -105,22 +105,34 @@ const LocationDetail = () => {
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-2xl">{location.name}</CardTitle>
-                    <CardDescription className="flex items-center mt-1">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {location.address}
-                    </CardDescription>
+          <Card>
+            <CardHeader>
+              <div className="flex gap-4">
+                <img
+                  src={location.image_url}
+                  alt={location.name}
+                  className="w-32 h-24 object-cover rounded-xl border"
+                />
+                <div className="flex flex-col justify-between w-full">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-2xl font-bold">{location.name}</CardTitle>
+                      <CardDescription className="flex items-center mt-1">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {location.address}
+                      </CardDescription>
+                    </div>
+                    {/* Rounded accessibility badge */}
+                    <div
+                      className="w-4 h-4 rounded-full mt-1"
+                      style={{ backgroundColor: level?.color || "gray"}}
+                      title={level?.name}
+                    />
                   </div>
-                  <Badge className="text-white" style={{ backgroundColor: level?.color }}>
-                    {level?.name}
-                  </Badge>
+                  <div className="mt-4">{renderStarRating(location.rating)}</div>
                 </div>
-                <div className="mt-4">{renderStarRating(location.rating)}</div>
-              </CardHeader>
+              </div>
+            </CardHeader>
               <Separator />
               <CardContent className="pt-6">
                 <div className="space-y-4">
