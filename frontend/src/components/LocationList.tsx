@@ -28,6 +28,7 @@ const LocationList = () => {
 
     if (filters.accessibilityFeatures.length > 0) {
       filtered = filtered.filter(location =>
+        Array.isArray(location.accessibilityFeatures) &&
         filters.accessibilityFeatures.every(featureId =>
           location.accessibilityFeatures.includes(featureId)
         )
@@ -86,7 +87,7 @@ const LocationList = () => {
                 <div className="flex gap-4">
                   {/* Image */}
                   <img
-                    src={location.image_url}
+                    src={location.image_url || '/placeholder.jpg'}
                     alt={location.name}
                     className="w-32 h-20 object-cover rounded-md border"
                   />
