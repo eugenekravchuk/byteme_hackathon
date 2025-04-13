@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Spinner from './ui/spinner';
 import { useApp } from '../context/AppContext';
 import { Button } from './ui/button';
 import { MapPin, Star } from 'lucide-react';
@@ -8,13 +9,15 @@ import { fetchLocations } from '../lib/api';
 const LocationList = () => {
   const { filters, accessibilityLevels, setSelectedLocation } = useApp();
   const [apiLocations, setApiLocations] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchLocations()
       .then(setApiLocations)
       .catch((err) => {
         console.error('Failed to fetch locations in component', err);
-      });
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const filteredLocations = React.useMemo(() => {
@@ -22,15 +25,18 @@ const LocationList = () => {
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(location =>
-        filters.categories.includes(location.category)
+        Array.isArray(location.categories) &&
+        location.categories.some((category: any) =>
+          filters.categories.includes(category.id)
+        )
       );
     }
 
     if (filters.accessibilityFeatures.length > 0) {
       filtered = filtered.filter(location =>
-        Array.isArray(location.accessibilityFeatures) &&
-        filters.accessibilityFeatures.every(featureId =>
-          location.accessibilityFeatures.includes(featureId)
+        Array.isArray(location.accessibility_features) &&
+        filters.accessibilityFeatures.every((featureId) =>
+          location.accessibility_features.some((f: any) => f.id === featureId)
         )
       );
     }
@@ -72,12 +78,14 @@ const LocationList = () => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-4 border-b">
-        <h2 className="font-semibold">Locations ({filteredLocations.length})</h2>
+        <h2 className="font-semibold">Locations</h2>
       </div>
 
       <div className="max-h-[600px] overflow-y-auto">
-        {filteredLocations.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
+      {isLoading ? (
+        <Spinner />
+        ) : filteredLocations.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
             No locations match your current filters.
           </div>
         ) : (
@@ -85,15 +93,12 @@ const LocationList = () => {
             {filteredLocations.map((location) => (
               <li key={location.id} className="p-4 hover:bg-gray-50">
                 <div className="flex gap-4">
-                  {/* Image */}
                   <img
                     src={location.image_url || '/placeholder.jpg'}
                     alt={location.name}
                     className="w-32 h-20 object-cover rounded-md border"
                   />
-
                   <div className="flex-1 pr-4">
-                    {/* Title + circle */}
                     <div className="flex items-center gap-2 mb-1">
                       <div
                         className="w-3 h-3 rounded-full"
@@ -102,19 +107,14 @@ const LocationList = () => {
                       />
                       <h3 className="text-base font-semibold">{location.name}</h3>
                     </div>
-
-                    {/* Address */}
                     <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-1" />
                       {location.address}
                     </div>
-
-                    {/* Stars */}
                     <div className="mt-2">
                       {renderStars(location.rating)}
                     </div>
                   </div>
-
                   <div className="flex items-center">
                     <Link to={`/location/${location.id}`}>
                       <Button size="sm" className="text-xs">Details</Button>

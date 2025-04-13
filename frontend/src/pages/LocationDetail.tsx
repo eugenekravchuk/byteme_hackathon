@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import NavBar from "../components/NavBar";
 import { Button } from "../components/ui/button";
+import Spinner from "../components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -47,6 +48,7 @@ const LocationDetail = () => {
   const [routeControl, setRouteControl] = useState<any>(null); // Store Leaflet routing control instance
   const [map, setMap] = useState<any>(null); // Store Leaflet map instance
   const [changeReview, setChangeReview] = useState<any>(null); // Store Leaflet map instance
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -71,6 +73,7 @@ const LocationDetail = () => {
 
   useEffect(() => {
     if (id) {
+      setIsLoading(true);
       fetchLocationById(id)
         .then((loc) => {
           setLocation({
@@ -85,12 +88,16 @@ const LocationDetail = () => {
         })
         .catch((err) => {
           console.error("Failed to load location:", err);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
     return () => {
       setSelectedLocation(null);
     };
   }, [id, setSelectedLocation]);
+  
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -137,6 +144,17 @@ const LocationDetail = () => {
     }
   }, [location]);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <NavBar />
+        <main className="flex-1 container mx-auto p-4 flex items-center justify-center">
+          <Spinner />
+        </main>
+      </div>
+    );
+  }
+  
   if (!location) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -150,6 +168,7 @@ const LocationDetail = () => {
       </div>
     );
   }
+  
 
   const getAccessibilityLevel = () => {
     return accessibilityLevels.find(
