@@ -22,15 +22,18 @@ const LocationList = () => {
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(location =>
-        filters.categories.includes(location.category)
+        Array.isArray(location.categories) &&
+        location.categories.some((category: any) =>
+          filters.categories.includes(category.id)
+        )
       );
     }
-
+    
     if (filters.accessibilityFeatures.length > 0) {
       filtered = filtered.filter(location =>
-        Array.isArray(location.accessibilityFeatures) &&
-        filters.accessibilityFeatures.every(featureId =>
-          location.accessibilityFeatures.includes(featureId)
+        Array.isArray(location.accessibility_features) &&
+        filters.accessibilityFeatures.every((featureId) =>
+          location.accessibility_features.some((f: any) => f.id === featureId)
         )
       );
     }
