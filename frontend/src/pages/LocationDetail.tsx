@@ -46,6 +46,7 @@ const LocationDetail = () => {
   const [userLocation, setUserLocation] = useState<any>(null); // Store user's current location
   const [routeControl, setRouteControl] = useState<any>(null); // Store Leaflet routing control instance
   const [map, setMap] = useState<any>(null); // Store Leaflet map instance
+  const [changeReview, setChangeReview] = useState<any>(null); // Store Leaflet map instance
 
   const navigate = useNavigate();
 
@@ -53,6 +54,7 @@ const LocationDetail = () => {
     if (!location) return;
     addReview(location.id, { rating, comment: review });
     setIsReviewFormOpen(false);
+    window.location.reload();
   };
 
   const handleRemoveFeature = (featureId: string) => {
@@ -358,6 +360,7 @@ const LocationDetail = () => {
       </main>
 
       <ReviewForm
+        locationId={id}
         locationName={location.name}
         isOpen={isReviewFormOpen}
         onClose={() => setIsReviewFormOpen(false)}

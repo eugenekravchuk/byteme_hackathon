@@ -13,13 +13,15 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface ReviewFormProps {
+  locationId: number;
   locationName: string;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, review: string) => void;
+  onSubmit?: (rating: number, review: string) => void;
 }
 
 export const ReviewForm = ({
+  locationId,
   locationName,
   isOpen,
   onClose,
@@ -28,26 +30,69 @@ export const ReviewForm = ({
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [review, setReview] = useState("");
-
-  const handleSubmit = () => {
-    if (rating === 0) {
-      toast.error("Please provide a rating");
-      return;
-    }
-
-    onSubmit(rating, review);
-    resetForm();
-  };
+  const [submitting, setSubmitting] = useState(false);
 
   const resetForm = () => {
     setRating(0);
     setHoveredRating(0);
     setReview("");
+    setSubmitting(false);
   };
 
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error("Please provide a rating");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
+      console.log(locationId);
+
+      const response = await fetch(
+        "https://access-compass-django.onrender.com/api/reviews/",
+        // "http://127.0.0.1:8000/api/reviews/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            rating: rating,
+            comment: review,
+            location: locationId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to submit review");
+      }
+
+      toast.success("Review submitted successfully");
+      if (onSubmit) onSubmit(rating, review);
+      resetForm();
+      onClose();
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error.message || "Submission failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -100,14 +145,19 @@ export const ReviewForm = ({
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={handleClose}>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={submitting}
+            >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
+              disabled={submitting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Submit Review
+              {submitting ? "Submitting..." : "Submit Review"}
             </Button>
           </div>
         </div>
