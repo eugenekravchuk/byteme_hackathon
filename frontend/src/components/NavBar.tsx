@@ -1,38 +1,39 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from './ui/button';
-import { useApp } from '../context/AppContext';
-import { 
-  Menu, 
-  X, 
-  MapPin, 
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/button";
+import { useApp } from "../context/AppContext";
+import {
+  Menu,
+  X,
+  MapPin,
   User as UserIcon,
-  LogIn, 
+  LogIn,
   LogOut,
-  Accessibility
-} from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from './ui/dropdown-menu';
-import AuthModal from './AuthModal';
-import { toast } from '../hooks/use-toast';
+  Accessibility,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import AuthModal from "./AuthModal";
+import { toast } from "../hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const NavBar = () => {
-  const { user, setUser } = useApp();
+  const { user, setUser, userLoading, logout } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  
+
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
   const handleLogout = () => {
-    setUser(null);
+    logout();
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out.",
@@ -47,23 +48,33 @@ const NavBar = () => {
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0 flex items-center">
                 <Accessibility className="h-8 w-8 text-white" />
-                <span className="ml-2 text-xl font-bold text-white">AccessCompass</span>
+                <span className="ml-2 text-xl font-bold text-white">
+                  AccessCompass
+                </span>
               </Link>
             </div>
-            
+
             {/* Desktop menu */}
             <div className="hidden md:flex md:items-center md:space-x-4">
-              <Link to="/" className="text-white hover:text-blue-100 px-3 py-2 rounded-md text-sm font-medium">
+              <Link
+                to="/"
+                className="text-white hover:text-blue-100 px-3 py-2 rounded-md text-sm font-medium"
+              >
                 Locations
               </Link>
-              <Link to="/map" className="text-white hover:text-blue-100 px-3 py-2 rounded-md text-sm font-medium">
+              <Link
+                to="/map"
+                className="text-white hover:text-blue-100 px-3 py-2 rounded-md text-sm font-medium"
+              >
                 Map
               </Link>
-              
-              {user ? (
+
+              {userLoading ? (
+                <Loader2 className="animate-spin text-white w-5 h-5" />
+              ) : user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:text-blue-100">
+                    <Button variant="ghost" className="text-white ">
                       <UserIcon className="h-5 w-5 mr-2" />
                       {user.name}
                       {user.isSpecialAccess && (
@@ -90,17 +101,17 @@ const NavBar = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setAuthModalOpen(true)}
-                  className="text-white border-white hover:bg-white hover:text-accessible"
+                  className=" border-white hover:text-accessible"
                 >
                   <LogIn className="h-5 w-5 mr-2" />
                   Sign In
                 </Button>
               )}
             </div>
-            
+
             {/* Mobile menu button */}
             <div className="flex md:hidden items-center">
               <button
@@ -116,40 +127,40 @@ const NavBar = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-accessible2">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <MapPin className="inline-block h-5 w-5 mr-2" />
                 Map
               </Link>
-              <Link 
-                to="/locations" 
+              <Link
+                to="/locations"
                 className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <MapPin className="inline-block h-5 w-5 mr-2" />
                 Locations
               </Link>
-              <Link 
-                to="/routes" 
+              <Link
+                to="/routes"
                 className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <MapPin className="inline-block h-5 w-5 mr-2" />
                 Routes
               </Link>
-              
+
               {user ? (
                 <>
-                  <Link 
-                    to="/profile" 
+                  <Link
+                    to="/profile"
                     className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -173,7 +184,7 @@ const NavBar = () => {
                     setAuthModalOpen(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
+                  className="text-white  block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
                 >
                   <LogIn className="inline-block h-5 w-5 mr-2" />
                   Sign In
@@ -183,7 +194,7 @@ const NavBar = () => {
           </div>
         )}
       </nav>
-      
+
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );

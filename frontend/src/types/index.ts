@@ -1,6 +1,5 @@
-
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   isSpecialAccess: boolean;
