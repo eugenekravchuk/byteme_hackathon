@@ -51,10 +51,10 @@ const LocationDetail = () => {
 
   const [location, setLocation] = useState<any>(null);
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState<any>(null); // Store user's current location
-  const [routeControl, setRouteControl] = useState<any>(null); // Store Leaflet routing control instance
-  const [map, setMap] = useState<any>(null); // Store Leaflet map instance
-  const [changeReview, setChangeReview] = useState<any>(null); // Store Leaflet map instance
+  const [userLocation, setUserLocation] = useState<any>(null);
+  const [routeControl, setRouteControl] = useState<any>(null);
+  const [map, setMap] = useState<any>(null);
+  const [changeReview, setChangeReview] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
