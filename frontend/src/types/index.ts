@@ -18,11 +18,16 @@ export interface AccessibilityLevel {
   description: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
 export interface Location {
   id: string;
   name: string;
   address: string;
-  category: string;
+  category: Category;
   description: string;
   coordinates: {
     lat: number;

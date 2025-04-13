@@ -17,7 +17,6 @@ const LocationList = () => {
       });
   }, []);
 
-  // Apply filters
   const filteredLocations = React.useMemo(() => {
     let filtered = [...apiLocations];
 
@@ -62,10 +61,10 @@ const LocationList = () => {
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`h-3 w-3 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+          className={`h-4 w-4 ${star <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
         />
       ))}
-      <span className="ml-1 text-xs">{}</span>
+      <span className="ml-2 text-sm font-medium">{Number(rating).toFixed(1)}</span>
     </div>
   );
 
@@ -84,31 +83,41 @@ const LocationList = () => {
           <ul className="divide-y">
             {filteredLocations.map((location) => (
               <li key={location.id} className="p-4 hover:bg-gray-50">
-                <div className="flex justify-between">
+                <div className="flex gap-4">
+                  {/* Image */}
+                  <img
+                    src={location.image_url}
+                    alt={location.name}
+                    className="w-32 h-20 object-cover rounded-md border"
+                  />
+
                   <div className="flex-1 pr-4">
-                    <h3 className="font-medium">{location.name}</h3>
-                    <p className="text-sm text-muted-foreground">{location.category}</p>
-                    <div className="flex items-center text-sm mt-1">
-                      <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
-                      <span className="text-muted-foreground truncate">{location.address}</span>
+                    {/* Title + circle */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: getAccessibilityColor(location.accessibilityLevel) }}
+                        title={location.accessibilityLevel}
+                      />
+                      <h3 className="text-base font-semibold">{location.name}</h3>
                     </div>
+
+                    {/* Address */}
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {location.address}
+                    </div>
+
+                    {/* Stars */}
                     <div className="mt-2">
                       {renderStars(location.rating)}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end justify-between">
-                    <div
-                      className="w-4 h-4 rounded-full mb-2"
-                      style={{ backgroundColor: getAccessibilityColor(location.accessibilityLevel) }}
-                    />
-                    <div className="flex gap-2">
-                      <Link to={`/location/${location.id}`}>
-                        <Button size="sm" className="text-xs">
-                          Details
-                        </Button>
-                      </Link>
-                    </div>
+                  <div className="flex items-center">
+                    <Link to={`/location/${location.id}`}>
+                      <Button size="sm" className="text-xs">Details</Button>
+                    </Link>
                   </div>
                 </div>
               </li>

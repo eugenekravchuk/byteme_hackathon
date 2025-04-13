@@ -67,7 +67,7 @@ const MapView = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="relative flex-grow rounded-lg border-2 border-muted overflow-hidden">
+      <div className="relative flex-grow rounded-lg border-2 border-muted overflow-hidden z-0">
         <MapContainer
           center={[49.8397, 24.0297]}
           zoom={13}

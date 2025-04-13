@@ -25,8 +25,6 @@ export async function fetchMyReviews(token: string) {
     return res.json(); // returns: [{ id, comment, rating, date, location: { id, name, category } }]
 }
 
-// lib/api.ts
-
 export async function updateLocationFeatures(locationId: string, featureIds: number[], token: string) {
   const response = await fetch(`https://access-compass-django.onrender.com/api/locations/${locationId}/`, {
     method: 'PATCH',
@@ -44,6 +42,32 @@ export async function updateLocationFeatures(locationId: string, featureIds: num
     throw new Error(`Failed to update features: ${response.status} ${errorText}`);
   }
 
-  return await response.json(); // Should return updated location object
+  return await response.json();
 }
 
+export async function fetchCategories() {
+  const response = await fetch(`${BASE_URL}/categories/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch categories: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchAccessibilityFeatures() {
+  const response = await fetch(`${BASE_URL}/features/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch accessibility features: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function fetchAccessibilityLevels() {
+  const response = await fetch(`${BASE_URL}/accessibility_levels/`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch accessibility levels: ${response.status} ${errorText}`);
+  }
+  return response.json();
+}

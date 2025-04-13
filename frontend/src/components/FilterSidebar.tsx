@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
@@ -12,6 +11,7 @@ import {
 } from './ui/accordion';
 import { Slider } from './ui/slider';
 import { Filter, Badge } from 'lucide-react';
+import { fetchCategories, fetchAccessibilityFeatures, fetchAccessibilityLevels } from '../lib/api';
 
 const FilterSidebar = () => {
   const {
@@ -20,58 +20,51 @@ const FilterSidebar = () => {
     categories,
     filters,
     setFilters,
+    setCategories,
+    setAccessibilityFeatures,
+    setAccessibilityLevels,
   } = useApp();
 
-  const handleCategoryChange = (category: string) => {
-    const currentCategories = [...filters.categories];
-    if (currentCategories.includes(category)) {
-      setFilters({
-        ...filters,
-        categories: currentCategories.filter((c) => c !== category),
-      });
-    } else {
-      setFilters({
-        ...filters,
-        categories: [...currentCategories, category],
-      });
-    }
+  useEffect(() => {
+    fetchCategories()
+      .then((fetched) => setCategories(fetched))
+      .catch((err) => console.error('Failed to fetch categories:', err));
+
+    fetchAccessibilityFeatures()
+      .then((fetched) => setAccessibilityFeatures(fetched))
+      .catch((err) => console.error('Failed to fetch features:', err));
+
+    fetchAccessibilityLevels()
+      .then((fetched) => setAccessibilityLevels(fetched))
+      .catch((err) => console.error('Failed to fetch levels:', err));
+  }, [setCategories, setAccessibilityFeatures, setAccessibilityLevels]);
+
+  const handleCategoryChange = (categoryId: string) => {
+    const updatedCategories = filters.categories.includes(categoryId)
+      ? filters.categories.filter((id) => id !== categoryId)
+      : [...filters.categories, categoryId];
+
+    setFilters({ ...filters, categories: updatedCategories });
   };
 
   const handleFeatureChange = (featureId: string) => {
-    const currentFeatures = [...filters.accessibilityFeatures];
-    if (currentFeatures.includes(featureId)) {
-      setFilters({
-        ...filters,
-        accessibilityFeatures: currentFeatures.filter((id) => id !== featureId),
-      });
-    } else {
-      setFilters({
-        ...filters,
-        accessibilityFeatures: [...currentFeatures, featureId],
-      });
-    }
+    const updatedFeatures = filters.accessibilityFeatures.includes(featureId)
+      ? filters.accessibilityFeatures.filter((id) => id !== featureId)
+      : [...filters.accessibilityFeatures, featureId];
+
+    setFilters({ ...filters, accessibilityFeatures: updatedFeatures });
   };
 
   const handleLevelChange = (levelId: string) => {
-    const currentLevels = [...filters.accessibilityLevels];
-    if (currentLevels.includes(levelId)) {
-      setFilters({
-        ...filters,
-        accessibilityLevels: currentLevels.filter((id) => id !== levelId),
-      });
-    } else {
-      setFilters({
-        ...filters,
-        accessibilityLevels: [...currentLevels, levelId],
-      });
-    }
+    const updatedLevels = filters.accessibilityLevels.includes(levelId)
+      ? filters.accessibilityLevels.filter((id) => id !== levelId)
+      : [...filters.accessibilityLevels, levelId];
+
+    setFilters({ ...filters, accessibilityLevels: updatedLevels });
   };
 
   const handleRatingChange = (value: number[]) => {
-    setFilters({
-      ...filters,
-      minRating: value[0],
-    });
+    setFilters({ ...filters, minRating: value[0] });
   };
 
   const resetFilters = () => {
@@ -110,18 +103,18 @@ const FilterSidebar = () => {
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2 mt-2">
-              {categories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
+              {categories.map((category: any) => (
+                <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`category-${category}`}
-                    checked={filters.categories.includes(category)}
-                    onCheckedChange={() => handleCategoryChange(category)}
+                    id={`category-${category.id}`}
+                    checked={filters.categories.includes(category.id)}
+                    onCheckedChange={() => handleCategoryChange(category.id)}
                   />
                   <Label
-                    htmlFor={`category-${category}`}
+                    htmlFor={`category-${category.id}`}
                     className="text-sm font-normal cursor-pointer"
                   >
-                    {category}
+                    {category.name}
                   </Label>
                 </div>
               ))}

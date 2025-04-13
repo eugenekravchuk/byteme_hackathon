@@ -2,18 +2,19 @@ import React, {
   createContext,
   useContext,
   useState,
-  ReactNode,
   useEffect,
+  ReactNode,
 } from "react";
 import {
-  accessibilityFeatures,
-  accessibilityLevels,
-  categories,
+  accessibilityFeatures as mockAccessibilityFeatures,
+  accessibilityLevels as mockAccessibilityLevels,
+  categories as mockCategories,
   locations as mockLocations,
 } from "../data/mockData";
 import {
   AccessibilityFeature,
   AccessibilityLevel,
+  Category,
   Filter,
   Location,
   Review,
@@ -27,16 +28,19 @@ import * as jwt_decode from "jwt-decode";
 
 interface AppContextType {
   user: User | null;
-  locations: Location[];
   userLoading: boolean;
+  locations: Location[];
   accessibilityFeatures: AccessibilityFeature[];
   accessibilityLevels: AccessibilityLevel[];
-  categories: string[];
+  categories: Category[];
   filters: Filter;
   selectedLocation: Location | null;
   setUser: (user: User | null) => void;
   setFilters: (filters: Filter) => void;
   setSelectedLocation: (location: Location | null) => void;
+  setCategories: (categories: Category[]) => void;
+  setAccessibilityFeatures: (features: AccessibilityFeature[]) => void;
+  setAccessibilityLevels: (levels: AccessibilityLevel[]) => void;
   addLocation: (location: Location) => void;
   updateLocation: (location: Location) => void;
   addReview: (
@@ -77,6 +81,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
+  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [accessibilityFeatures, setAccessibilityFeatures] = useState<
+    AccessibilityFeature[]
+  >(mockAccessibilityFeatures);
+  const [accessibilityLevels, setAccessibilityLevels] = useState<
+    AccessibilityLevel[]
+  >(mockAccessibilityLevels);
   const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
@@ -154,9 +165,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     csrfToken?: string
   ) => {
     try {
-      await registerApi(username, password, email, csrfToken);
-
-      // Now login immediately after
+      await registerApi(username, password, email);
       const tokens = await loginApi(username, password);
       await loginUser(tokens.access, tokens.refresh);
     } catch (err) {
@@ -314,6 +323,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     setUser,
     setFilters,
     setSelectedLocation,
+    setCategories,
+    setAccessibilityFeatures,
+    setAccessibilityLevels,
     addLocation,
     updateLocation,
     addReview,
