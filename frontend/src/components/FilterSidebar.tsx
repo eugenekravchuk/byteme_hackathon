@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
-import { Label } from './ui/label';
 import {
   Accordion,
   AccordionContent,
@@ -11,7 +10,11 @@ import {
 } from './ui/accordion';
 import { Slider } from './ui/slider';
 import { Filter, Badge } from 'lucide-react';
-import { fetchCategories, fetchAccessibilityFeatures, fetchAccessibilityLevels } from '../lib/api';
+import {
+  fetchCategories,
+  fetchAccessibilityFeatures,
+  fetchAccessibilityLevels,
+} from '../lib/api';
 
 const FilterSidebar = () => {
   const {
@@ -27,15 +30,15 @@ const FilterSidebar = () => {
 
   useEffect(() => {
     fetchCategories()
-      .then((fetched) => setCategories(fetched))
+      .then(setCategories)
       .catch((err) => console.error('Failed to fetch categories:', err));
 
     fetchAccessibilityFeatures()
-      .then((fetched) => setAccessibilityFeatures(fetched))
+      .then(setAccessibilityFeatures)
       .catch((err) => console.error('Failed to fetch features:', err));
 
     fetchAccessibilityLevels()
-      .then((fetched) => setAccessibilityLevels(fetched))
+      .then(setAccessibilityLevels)
       .catch((err) => console.error('Failed to fetch levels:', err));
   }, [setCategories, setAccessibilityFeatures, setAccessibilityLevels]);
 
@@ -43,7 +46,6 @@ const FilterSidebar = () => {
     const updatedCategories = filters.categories.includes(categoryId)
       ? filters.categories.filter((id) => id !== categoryId)
       : [...filters.categories, categoryId];
-
     setFilters({ ...filters, categories: updatedCategories });
   };
 
@@ -51,7 +53,6 @@ const FilterSidebar = () => {
     const updatedFeatures = filters.accessibilityFeatures.includes(featureId)
       ? filters.accessibilityFeatures.filter((id) => id !== featureId)
       : [...filters.accessibilityFeatures, featureId];
-
     setFilters({ ...filters, accessibilityFeatures: updatedFeatures });
   };
 
@@ -59,7 +60,6 @@ const FilterSidebar = () => {
     const updatedLevels = filters.accessibilityLevels.includes(levelId)
       ? filters.accessibilityLevels.filter((id) => id !== levelId)
       : [...filters.accessibilityLevels, levelId];
-
     setFilters({ ...filters, accessibilityLevels: updatedLevels });
   };
 
@@ -104,18 +104,16 @@ const FilterSidebar = () => {
           <AccordionContent>
             <div className="space-y-2 mt-2">
               {categories.map((category: any) => (
-                <div key={category.id} className="flex items-center space-x-2">
+                <div
+                  key={category.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => handleCategoryChange(category.id)}
+                >
                   <Checkbox
-                    id={`category-${category.id}`}
                     checked={filters.categories.includes(category.id)}
-                    onCheckedChange={() => handleCategoryChange(category.id)}
+                    onCheckedChange={() => {}}
                   />
-                  <Label
-                    htmlFor={`category-${category.id}`}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {category.name}
-                  </Label>
+                  <span className="text-sm font-normal">{category.name}</span>
                 </div>
               ))}
             </div>
@@ -132,18 +130,16 @@ const FilterSidebar = () => {
           <AccordionContent>
             <div className="space-y-2 mt-2">
               {accessibilityFeatures.map((feature) => (
-                <div key={feature.id} className="flex items-center space-x-2">
+                <div
+                  key={feature.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => handleFeatureChange(feature.id)}
+                >
                   <Checkbox
-                    id={`feature-${feature.id}`}
                     checked={filters.accessibilityFeatures.includes(feature.id)}
-                    onCheckedChange={() => handleFeatureChange(feature.id)}
+                    onCheckedChange={() => {}}
                   />
-                  <Label
-                    htmlFor={`feature-${feature.id}`}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {feature.name}
-                  </Label>
+                  <span className="text-sm font-normal">{feature.name}</span>
                 </div>
               ))}
             </div>
@@ -160,22 +156,17 @@ const FilterSidebar = () => {
           <AccordionContent>
             <div className="space-y-2 mt-2">
               {accessibilityLevels.map((level) => (
-                <div key={level.id} className="flex items-center space-x-2">
+                <div
+                  key={level.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => handleLevelChange(level.id)}
+                >
                   <Checkbox
-                    id={`level-${level.id}`}
                     checked={filters.accessibilityLevels.includes(level.id)}
-                    onCheckedChange={() => handleLevelChange(level.id)}
+                    onCheckedChange={() => {}}
                   />
-                  <Label
-                    htmlFor={`level-${level.id}`}
-                    className="text-sm font-normal cursor-pointer flex items-center"
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full mr-2"
-                      style={{ backgroundColor: level.color }}
-                    />
-                    {level.name}
-                  </Label>
+                  <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: level.color }} />
+                  <span className="text-sm font-normal">{level.name}</span>
                 </div>
               ))}
             </div>
@@ -194,7 +185,7 @@ const FilterSidebar = () => {
               <Slider
                 defaultValue={[filters.minRating]}
                 max={5}
-                step={0.5}
+                step={0.1}
                 value={[filters.minRating]}
                 onValueChange={handleRatingChange}
               />
