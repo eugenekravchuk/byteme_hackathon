@@ -26,39 +26,46 @@ const MapView = () => {
 
   useEffect(() => {
     fetchLocations()
-      .then(setAllLocations)
+      .then((locations) => {
+        setAllLocations(locations);
+
+        let filtered = [...locations];
+
+        if (filters.categories.length > 0) {
+          filtered = filtered.filter(location =>
+            Array.isArray(location.categories) &&
+            location.categories.some((category: any) =>
+              filters.categories.includes(category.id)
+            )
+          );
+        }
+
+        if (filters.accessibilityFeatures.length > 0) {
+          filtered = filtered.filter(location =>
+            Array.isArray(location.accessibility_features) &&
+            filters.accessibilityFeatures.every((featureId) =>
+              location.accessibility_features.some((f: any) => f.id === featureId)
+            )
+          );
+        }
+
+        if (filters.accessibilityLevels.length > 0) {
+          filtered = filtered.filter(location =>
+            Array.isArray(location.accessibility_levels) &&
+            location.accessibility_levels.some((level: any) =>
+              filters.accessibilityLevels.includes(level.id)
+            )
+          );
+        }
+
+        if (filters.minRating > 0) {
+          filtered = filtered.filter(location => Number(location.rating) >= filters.minRating);
+        }
+
+        setFilteredLocations(filtered);
+      })
       .catch((err) => console.error('Failed to fetch locations:', err));
-  }, []);
-
-  useEffect(() => {
-    let filtered = [...allLocations];
-
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter(location =>
-        filters.categories.includes(location.category)
-      );
-    }
-
-    if (filters.accessibilityFeatures.length > 0) {
-      filtered = filtered.filter(location =>
-        filters.accessibilityFeatures.every(featureId =>
-          location.accessibilityFeatures.includes(featureId)
-        )
-      );
-    }
-
-    if (filters.accessibilityLevels.length > 0) {
-      filtered = filtered.filter(location =>
-        filters.accessibilityLevels.includes(location.accessibilityLevel)
-      );
-    }
-
-    if (filters.minRating > 0) {
-      filtered = filtered.filter(location => location.rating >= filters.minRating);
-    }
-
-    setFilteredLocations(filtered);
-  }, [allLocations, filters]);
+  }, [filters]);
 
   const handleSelectLocation = (location: Location) => {
     setSelectedLocation(location);
