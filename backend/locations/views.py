@@ -24,7 +24,7 @@ class LocationViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class AccessibilityFeatureViewSet(viewsets.ReadOnlyModelViewSet):
+class AccessibilityFeatureViewSet(viewsets.ModelViewSet): 
     queryset = AccessibilityFeature.objects.all()
     serializer_class = AccessibilityFeatureSerializer
 
