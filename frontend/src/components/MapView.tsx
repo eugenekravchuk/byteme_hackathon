@@ -1,29 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Location } from '../types';
-import { MapPin } from 'lucide-react';
 import { Button } from './ui/button';
-import { toast } from '../hooks/use-toast';
 import LocationDetailsPanel from './LocationDetailsPanel';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import { LatLngExpression, Icon } from 'leaflet';
+import { LatLngExpression } from 'leaflet';
 import { fetchLocations } from '../lib/api';
 import L from 'leaflet';
-
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+import "leaflet-routing-machine";
 
 const MapView = () => {
-  const { filters, accessibilityLevels, selectedLocation, setSelectedLocation } = useApp();
+  const { filters, setSelectedLocation } = useApp();
   const [allLocations, setAllLocations] = useState<Location[]>([]);
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
-  const [route, setRoute] = useState<LatLngExpression[]>([]);
+  const [userLocation, setUserLocation] = useState<any>(null);
+  const [routeControls, setRouteControls] = useState<any[]>([]);
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [mapReady, setMapReady] = useState(false);
+
 
   useEffect(() => {
     fetchLocations()
@@ -68,52 +63,96 @@ const MapView = () => {
       .catch((err) => console.error('Failed to fetch locations:', err));
   }, [filters]);
 
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+
+
+          if (mapInstance) {
+            mapInstance.setView([position.coords.latitude, position.coords.longitude], 13);
+          }
+        },
+        (error) => {
+          console.error('Error getting geolocation: ', error);
+        }
+      );
+    }
+  }, [mapInstance]);
+
   const handleSelectLocation = (location: Location) => {
     setSelectedLocation(location);
-    if (location.coordinates && location.coordinates.lat !== undefined && location.coordinates.lng !== undefined) {
-      setRoute((prev) => [...prev, [location.coordinates.lat, location.coordinates.lng]]);
-    }
   };
 
   const handlePlanRoute = () => {
-    if (!selectedLocation) return;
-    toast({
-      title: "Route Planning",
-      description: "Drawing route between selected locations (demo).",
+    if (!userLocation || filteredLocations.length === 0 || !mapInstance || !mapReady) return;
+
+    routeControls.forEach((control) => control.remove());
+
+    const newRouteControls = filteredLocations.map((location) => {
+      const routeControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userLocation.lat, userLocation.lng),
+          L.latLng(location.latitude, location.longitude),
+        ],
+        createMarker: () => null, 
+        routeWhileDragging: true, 
+        alternatives: false,  
+        showAlternatives: false,
+      });
+
+      routeControl.addTo(mapInstance);
+
+      return routeControl;
     });
+
+    setRouteControls(newRouteControls);
   };
+
+  const renderMap = () => (
+    <MapContainer
+      whenReady={(event) => { 
+        const map = event.target;
+        setMapInstance(map);
+        setMapReady(true);
+      }}
+      center={[49.8397, 24.0297]}
+      zoom={13}
+      scrollWheelZoom={true}
+      style={{ height: '100%', width: '100%' }}
+    >
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {filteredLocations.map((location) =>
+        location.latitude && location.longitude ? (
+          <Marker
+            key={location.id}
+            position={[location.latitude, location.longitude]}
+            eventHandlers={{
+              click: () => handleSelectLocation(location),
+            }}
+          >
+            <Popup>
+              <strong>{location.name}</strong><br />
+              Rating: {location.rating}
+            </Popup>
+          </Marker>
+        ) : null
+      )}
+    </MapContainer>
+  );
 
   return (
     <div className="h-full flex flex-col">
       <div className="relative flex-grow rounded-lg border-2 border-muted overflow-hidden z-0">
-        <MapContainer
-          center={[49.8397, 24.0297]}
-          zoom={13}
-          scrollWheelZoom={true}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            attribution='&copy; OpenStreetMap contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {filteredLocations.map((location) => (
-            location.latitude !== undefined && location.longitude !== undefined && (
-              <Marker
-                key={location.id}
-                position={[location.latitude, location.longitude]}
-                eventHandlers={{ click: () => handleSelectLocation(location) }}
-              >
-                <Popup>
-                  <div className="text-sm">
-                    <strong>{location.name}</strong><br />
-                    Rating: {location.rating}
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          ))}
-          {route.length > 1 && <Polyline positions={route} color="blue" />}
-        </MapContainer>
+        {renderMap()}
       </div>
 
       <div className="flex justify-between items-center py-2">
@@ -126,18 +165,10 @@ const MapView = () => {
             onClick={handlePlanRoute}
             variant="outline"
             className="text-xs"
-            disabled={!selectedLocation}
+            disabled={!userLocation || filteredLocations.length === 0 || !mapReady}
           >
             Plan Accessible Route
           </Button>
-
-          {selectedLocation && (
-            <Link to={`/location/${selectedLocation.id}`}>
-              <Button className="text-xs">
-                View Full Details
-              </Button>
-            </Link>
-          )}
         </div>
       </div>
 
