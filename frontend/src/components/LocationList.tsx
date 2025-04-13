@@ -43,12 +43,15 @@ const LocationList = () => {
 
     if (filters.accessibilityLevels.length > 0) {
       filtered = filtered.filter(location =>
-        filters.accessibilityLevels.includes(location.accessibilityLevel)
+        Array.isArray(location.accessibility_levels) &&
+        location.accessibility_levels.some((level: any) =>
+          filters.accessibilityLevels.includes(level.id)
+        )
       );
     }
 
     if (filters.minRating > 0) {
-      filtered = filtered.filter(location => location.rating >= filters.minRating);
+      filtered = filtered.filter(location => Number(location.rating) >= filters.minRating);
     }
 
     return filtered;
@@ -58,9 +61,14 @@ const LocationList = () => {
     setSelectedLocation(location);
   };
 
-  const getAccessibilityColor = (levelId: string) => {
-    const level = accessibilityLevels.find(level => level.id === levelId);
-    return level ? level.color : "#888888";
+  const getAccessibilityColor = (levels: any[]) => {
+    if (!Array.isArray(levels) || levels.length === 0) return "#888888";
+    return levels[0]?.color || "#888888";
+  };
+
+  const getAccessibilityName = (levels: any[]) => {
+    if (!Array.isArray(levels) || levels.length === 0) return "Unknown";
+    return levels[0]?.name || "Unknown";
   };
 
   const renderStars = (rating: number) => (
@@ -82,8 +90,8 @@ const LocationList = () => {
       </div>
 
       <div className="max-h-[600px] overflow-y-auto">
-      {isLoading ? (
-        <Spinner />
+        {isLoading ? (
+          <Spinner />
         ) : filteredLocations.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground">
             No locations match your current filters.
@@ -102,8 +110,8 @@ const LocationList = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: getAccessibilityColor(location.accessibilityLevel) }}
-                        title={location.accessibilityLevel}
+                        style={{ backgroundColor: getAccessibilityColor(location.accessibility_levels) }}
+                        title={getAccessibilityName(location.accessibility_levels)}
                       />
                       <h3 className="text-base font-semibold">{location.name}</h3>
                     </div>
