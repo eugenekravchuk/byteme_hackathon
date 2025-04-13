@@ -1,17 +1,34 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import {
   accessibilityFeatures as mockAccessibilityFeatures,
   accessibilityLevels as mockAccessibilityLevels,
   categories as mockCategories,
-  currentUser,
   locations as mockLocations,
-  users as mockUsers
-} from '../data/mockData';
-import { AccessibilityFeature, AccessibilityLevel, Category, Filter, Location, Review, User } from '../types';
-import { toast } from '../hooks/use-toast';
+} from "../data/mockData";
+import {
+  AccessibilityFeature,
+  AccessibilityLevel,
+  Category,
+  Filter,
+  Location,
+  Review,
+  User,
+} from "../types";
+import { toast } from "../hooks/use-toast";
+import { getUserProfile } from "../api/user";
+import { register as registerApi } from "../api/auth";
+import { login as loginApi } from "../api/auth";
+import * as jwt_decode from "jwt-decode";
 
 interface AppContextType {
   user: User | null;
+  userLoading: boolean;
   locations: Location[];
   accessibilityFeatures: AccessibilityFeature[];
   accessibilityLevels: AccessibilityLevel[];
@@ -26,13 +43,24 @@ interface AppContextType {
   setAccessibilityLevels: (levels: AccessibilityLevel[]) => void;
   addLocation: (location: Location) => void;
   updateLocation: (location: Location) => void;
-  addReview: (locationId: string, review: Omit<Review, 'id' | 'userId' | 'userName' | 'date'>) => void;
+  addReview: (
+    locationId: string,
+    review: Omit<Review, "id" | "userId" | "userName" | "date">
+  ) => void;
   suggestAccessibilityChange: (
     locationId: string,
     features: string[],
     accessibilityLevel: string,
     comment: string
   ) => void;
+  loginUser: (accessToken: string, refreshToken: string) => Promise<void>;
+  logout: () => void;
+  registerUser: (
+    username: string,
+    password: string,
+    email: string,
+    csrfToken?: string
+  ) => Promise<void>;
 }
 
 const initialFilters: Filter = {
@@ -44,14 +72,116 @@ const initialFilters: Filter = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(currentUser);
+export const AppProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(null);
   const [locations, setLocations] = useState<Location[]>(mockLocations);
   const [filters, setFilters] = useState<Filter>(initialFilters);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
+    null
+  );
   const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [accessibilityFeatures, setAccessibilityFeatures] = useState<AccessibilityFeature[]>(mockAccessibilityFeatures);
-  const [accessibilityLevels, setAccessibilityLevels] = useState<AccessibilityLevel[]>(mockAccessibilityLevels);
+  const [accessibilityFeatures, setAccessibilityFeatures] = useState<
+    AccessibilityFeature[]
+  >(mockAccessibilityFeatures);
+  const [accessibilityLevels, setAccessibilityLevels] = useState<
+    AccessibilityLevel[]
+  >(mockAccessibilityLevels);
+  const [userLoading, setUserLoading] = useState(true);
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      setUserLoading(false);
+      return;
+    }
+
+    try {
+      const decoded: any = jwt_decode.jwtDecode(accessToken);
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        setUserLoading(false);
+        return;
+      }
+
+      getUserProfile()
+        .then((data) => {
+          setUser({
+            id: data.id.toString(),
+            name: data.username,
+            email: data.email,
+            isSpecialAccess: data.is_special_user,
+          });
+        })
+        .catch(() => {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        })
+        .finally(() => {
+          setUserLoading(false);
+        });
+    } catch {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      setUserLoading(false);
+    }
+  }, []);
+
+  const loginUser = async (accessToken: string, refreshToken: string) => {
+    try {
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+
+      const data = await getUserProfile();
+
+      setUser({
+        id: data.id.toString(),
+        name: data.username,
+        email: data.email,
+        isSpecialAccess: data.is_special_user,
+      });
+
+      toast({
+        title: "Welcome",
+        description: `Logged in as ${data.username}`,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: "Unable to load user information.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const registerUser = async (
+    username: string,
+    password: string,
+    email: string,
+    csrfToken?: string
+  ) => {
+    try {
+      await registerApi(username, password, email);
+      const tokens = await loginApi(username, password);
+      await loginUser(tokens.access, tokens.refresh);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+  };
 
   const addLocation = (location: Location) => {
     setLocations([...locations, location]);
@@ -63,7 +193,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const updateLocation = (updatedLocation: Location) => {
     setLocations(
-      locations.map((loc) => (loc.id === updatedLocation.id ? updatedLocation : loc))
+      locations.map((loc) =>
+        loc.id === updatedLocation.id ? updatedLocation : loc
+      )
     );
     if (selectedLocation?.id === updatedLocation.id) {
       setSelectedLocation(updatedLocation);
@@ -76,7 +208,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const addReview = (
     locationId: string,
-    review: Omit<Review, 'id' | 'userId' | 'userName' | 'date'>
+    review: Omit<Review, "id" | "userId" | "userName" | "date">
   ) => {
     if (!user) {
       toast({
@@ -114,7 +246,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setLocations(updatedLocations);
 
     if (selectedLocation?.id === locationId) {
-      const updatedLocation = updatedLocations.find((loc) => loc.id === locationId);
+      const updatedLocation = updatedLocations.find(
+        (loc) => loc.id === locationId
+      );
       if (updatedLocation) {
         setSelectedLocation(updatedLocation);
       }
@@ -156,7 +290,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       setLocations(updatedLocations);
 
       if (selectedLocation?.id === locationId) {
-        const updatedLocation = updatedLocations.find((loc) => loc.id === locationId);
+        const updatedLocation = updatedLocations.find(
+          (loc) => loc.id === locationId
+        );
         if (updatedLocation) {
           setSelectedLocation(updatedLocation);
         }
@@ -169,13 +305,15 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     } else {
       toast({
         title: "Suggestion Received",
-        description: "Your suggestion has been submitted for review. Thank you!",
+        description:
+          "Your suggestion has been submitted for review. Thank you!",
       });
     }
   };
 
-  const value = {
+  const value: AppContextType = {
     user,
+    userLoading,
     locations,
     accessibilityFeatures,
     accessibilityLevels,
@@ -192,6 +330,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     updateLocation,
     addReview,
     suggestAccessibilityChange,
+    loginUser,
+    logout,
+    registerUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -200,7 +341,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 export const useApp = () => {
   const context = useContext(AppContext);
   if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
+    throw new Error("useApp must be used within an AppProvider");
   }
   return context;
 };

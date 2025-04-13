@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   isSpecialAccess: boolean;
@@ -27,18 +27,17 @@ export interface Location {
   id: string;
   name: string;
   address: string;
-  category: Category;
+  category: string;
   description: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
+  latitude: number;
+  longitude: number;
   accessibilityFeatures: string[];
   accessibilityLevel: string;
   rating: number;
   reviews: Review[];
   images?: string[];
 }
+
 
 export interface Review {
   id: string;
